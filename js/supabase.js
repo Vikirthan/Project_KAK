@@ -1,16 +1,16 @@
 /* ===================================================
-   KAK HYGIENE SYSTEM — Supabase Client
-   Project: https://teurrtdssxtqsrxfnuii.supabase.co
+   KAK HYGIENE SYSTEM — Primary Data Backend (MATRIX)
+   Project: https://lnnuiblwjyqzyzzfqyla.supabase.co
    =================================================== */
 
-const SUPABASE_URL = 'https://teurrtdssxtqsrxfnuii.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_g8-2j3392y4WzxBhDqWyPA_c41jHtpJ';
+const SUPABASE_URL = 'https://lnnuiblwjyqzyzzfqyla.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxubnVpYmx3anlxenl6emZxeWxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NDAwOTksImV4cCI6MjA4NzQxNjA5OX0.ixOq9ECkgdrt8YvMZWTDoET3OkA6RLvOv_MMII-EycU';
 
 // Initialise the Supabase client (requires @supabase/supabase-js CDN loaded first)
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Storage bucket name (must match what you create on the Supabase dashboard)
-const PHOTO_BUCKET = 'complaint-photos';
+// Storage bucket name
+const PHOTO_BUCKET = 'database';
 
 /* --------------------------------------------------
    uploadComplaintPhoto(dataUrl, studentUID, ticketId)

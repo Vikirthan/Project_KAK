@@ -48,14 +48,18 @@
     color: var(--text-muted);
 }
 
-.nav-user {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
+@media (max-width: 480px) {
+    .nav-user-info {
+        display: none;
+    }
 
-.nav-user-info {
-    text-align: right;
+    .nav-logout-btn {
+        padding: 8px 10px;
+    }
+
+    .nav-logout-btn span {
+        display: none;
+    }
 }
 
 .nav-user-name {
@@ -351,18 +355,24 @@
     border-color: rgba(245, 158, 11, 0.35);
 }
 
-.card-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-}
+@media (max-width: 480px) {
+    .sup-card {
+        padding: 14px;
+    }
 
-.card-left {
-    flex: 1;
-    min-width: 0;
+    .card-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .card-right {
+        align-items: flex-start;
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
 }
 
 .card-issue {

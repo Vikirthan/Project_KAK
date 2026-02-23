@@ -316,33 +316,31 @@
     if (timerMap[ticketId]) clearInterval(timerMap[ticketId]);
 
     function tick() {
-      if (!document.body.contains(timerEl)) {
+      // If the element is no longer in the body, stop the interval
+      if (!document.contains(timerEl)) {
+        clearInterval(timerMap[ticketId]);
+        delete timerMap[ticketId];
+        return;
+      }
+
+      const ms = msUntil(deadlineISO);
+      if (ms <= 0) {
+        timerEl.textContent = '⏱ OVERDUE';
+        timerEl.className = 'timer-badge timer-overdue';
         clearInterval(timerMap[ticketId]);
         return;
       }
-      const ms = msUntil(deadlineISO);
-      if (ms <= 0) {
-        timerEl.textContent = 'OVERDUE';
-        timerEl.className = 'timer-badge timer-overdue';
-        return;
-      }
+
       timerEl.textContent = '⏱ ' + formatCountdown(ms);
       if (ms < 5 * 60 * 1000) timerEl.className = 'timer-badge timer-danger';
       else if (ms < 15 * 60 * 1000) timerEl.className = 'timer-badge timer-warn';
       else timerEl.className = 'timer-badge timer-ok';
     }
 
-    tick();
-    timerMap[ticketId] = setInterval(async () => {
-      const ms = msUntil(deadlineISO);
-      if (ms <= 0) {
-        clearInterval(timerMap[ticketId]);
-        await runEscalationEngine();
-        await render();
-        return;
-      }
-      tick();
-    }, 1000);
+    // Initial delay to allow card to be appended to body
+    setTimeout(tick, 100);
+
+    timerMap[ticketId] = setInterval(tick, 1000);
   }
 
   /* ─────────────────────────────────────────────

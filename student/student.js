@@ -33,6 +33,36 @@
     });
 
     /* =========================================================
+       2.1 LIVE TIMER TRACKER
+    ========================================================= */
+    const studentTimerMap = {}; // ticketId -> interval
+
+    function startStudentLiveTimer(ticketId, deadlineISO, containerId) {
+        if (studentTimerMap[ticketId]) clearInterval(studentTimerMap[ticketId]);
+
+        function update() {
+            const el = document.getElementById(`timer-${ticketId}`);
+            if (!el) {
+                clearInterval(studentTimerMap[ticketId]);
+                delete studentTimerMap[ticketId];
+                return;
+            }
+            const ms = msUntil(deadlineISO);
+            if (ms <= 0) {
+                el.textContent = '⏱️ Overdue';
+                el.style.color = '#ef4444';
+                clearInterval(studentTimerMap[ticketId]);
+                return;
+            }
+            el.textContent = '⏱️ ' + formatCountdown(ms) + ' remaining';
+            el.style.color = ms < 5 * 60 * 1000 ? '#ef4444' : (ms < 15 * 60 * 1000 ? '#f59e0b' : '#3b82f6');
+        }
+
+        update();
+        studentTimerMap[ticketId] = setInterval(update, 1000);
+    }
+
+    /* =========================================================
        3. VIEW MANAGEMENT (Dashboard ↔ Form)
     ========================================================= */
     const viewDash = document.getElementById('view-dashboard');
@@ -238,7 +268,10 @@
             const ms = msUntil(deadline);
             const timeStr = formatCountdown(ms);
             const color = ms < 5 * 60 * 1000 ? '#ef4444' : (ms < 15 * 60 * 1000 ? '#f59e0b' : '#3b82f6');
-            timerHtml = `<div class="complaint-timer" style="color: ${color}; font-weight: 800; font-family: monospace; font-size: 13px; margin-top: 6px;">⏱️ ${timeStr} remaining</div>`;
+            timerHtml = `<div class="complaint-timer" id="timer-${c.ticketId}" style="color: ${color}; font-weight: 800; font-family: monospace; font-size: 13px; margin-top: 6px;">⏱️ ${timeStr} remaining</div>`;
+
+            // Start the live runner after a tiny delay to ensure card is in DOM
+            setTimeout(() => startStudentLiveTimer(c.ticketId, deadline), 50);
         }
 
         div.innerHTML = `
@@ -659,5 +692,68 @@
 
     // Run deep link check on load
     checkDeepLinks();
+
+    /* =========================================================
+       7. QR SCANNER IMPLEMENTATION
+    ========================================================= */
+    const qrModal = document.getElementById('qr-modal');
+    const btnScanQR = document.getElementById('btn-scan-qr');
+    const qrCancel = document.getElementById('qr-cancel');
+    let html5QrCode = null;
+
+    if (btnScanQR) {
+        btnScanQR.addEventListener('click', () => {
+            qrModal.style.display = 'flex';
+            startScanner();
+        });
+    }
+
+    qrCancel.addEventListener('click', stopScanner);
+
+    function startScanner() {
+        if (html5QrCode) stopScanner();
+        html5QrCode = new Html5Qrcode("qr-reader");
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+        html5QrCode.start(
+            { facingMode: "environment" },
+            config,
+            (decodedText) => {
+                // Handle scanned link
+                stopScanner();
+                try {
+                    const url = new URL(decodedText);
+                    const loc = url.searchParams.get('loc');
+                    if (loc) {
+                        window.history.replaceState(null, '', `?loc=${loc}`);
+                        checkDeepLinks();
+                    } else {
+                        alert("Scanned QR but no location found. Please scan the official KAK Restroom QR.");
+                    }
+                } catch (e) {
+                    // Not a URL, check if it's just the location string
+                    if (decodedText.startsWith('block-')) {
+                        window.history.replaceState(null, '', `?loc=${decodedText}`);
+                        checkDeepLinks();
+                    } else {
+                        alert("Invalid QR Code: " + decodedText);
+                    }
+                }
+            },
+            (errorMessage) => { /* ignore constant scan errors */ }
+        ).catch(err => {
+            console.error("Camera access failed", err);
+            alert("Could not access camera. Please ensure permissions are granted.");
+            stopScanner();
+        });
+    }
+
+    function stopScanner() {
+        qrModal.style.display = 'none';
+        if (html5QrCode) {
+            html5QrCode.stop().catch(e => console.error(e));
+            html5QrCode = null;
+        }
+    }
 
 })();

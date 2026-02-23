@@ -53,10 +53,14 @@
     color: var(--text-muted);
 }
 
-.nav-user {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+@media (max-width: 480px) {
+    .nav-user {
+        gap: 8px;
+    }
+
+    .btn-logout span {
+        display: none;
+    }
 }
 
 .vendor-main {
@@ -311,34 +315,26 @@
 }
 
 /* Mobile */
-@media (max-width: 900px) {
+@media (max-width: 600px) {
     .rank-card {
-        grid-template-columns: 40px 1fr 1fr;
+        grid-template-columns: 40px 1fr;
         grid-template-areas:
-            "num info rating"
-            "num bp stats";
-        gap: 12px;
+            "num info"
+            "num bp"
+            "num rating"
+            "num stats";
+        gap: 10px;
+        padding: 16px;
     }
 
     .rank-num {
         grid-area: num;
+        align-self: start;
+        padding-top: 4px;
     }
 
-    .sup-info {
-        grid-area: info;
-    }
-
-    .rating-wrap {
-        grid-area: rating;
-    }
-
-    .bp-wrap {
-        grid-area: bp;
-    }
-
-    .stats-mini-wrap {
-        grid-area: stats;
-        display: none;
+    .sm-val {
+        font-size: 14px;
     }
 }
 

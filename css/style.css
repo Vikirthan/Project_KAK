@@ -47,7 +47,7 @@ body {
   /* Space for the fixed ranking sidebar */
 }
 
-@media (max-width: 1400px) {
+@media (max-width: 1200px) {
   body {
     padding-left: 0;
   }
@@ -130,11 +130,13 @@ body {
   box-shadow: var(--shadow);
 }
 
-@media (max-width: 1400px) {
+@media (max-width: 1200px) {
   .ranking-sidebar {
-    position: static;
+    position: relative;
     width: 100%;
-    margin-bottom: 32px;
+    margin: 20px auto 32px;
+    top: 0;
+    left: 0;
   }
 }
 

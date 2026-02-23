@@ -57,7 +57,7 @@
                     <polyline points="16,17 21,12 16,7" />
                     <line x1="21" y1="12" x2="9" y2="12" />
                 </svg>
-                Logout
+                <span>Logout</span>
             </button>
         </div>
     </nav>
@@ -79,14 +79,28 @@
                                 id="greeting-name">Student</span> 👋</h1>
                         <p class="welcome-sub">Here's a summary of your hygiene complaints at LPU.</p>
                     </div>
-                    <button class="btn-new-complaint" id="btn-open-form">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.5" stroke-linecap="round">
-                            <line x1="12" y1="5" x2="12" y2="19" />
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                        </svg>
-                        New Complaint
-                    </button>
+                    <div class="banner-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn-scan-qr" id="btn-scan-qr"
+                            style="display:flex; align-items:center; gap:8px; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); color: #818cf8; padding: 10px 18px; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round">
+                                <rect x="3" y="3" width="7" height="7" />
+                                <rect x="14" y="3" width="7" height="7" />
+                                <rect x="14" y="14" width="7" height="7" />
+                                <rect x="3" y="14" width="7" height="7" />
+                                <path d="M7 7h.01M17 7h.01M17 17h.01M7 17h.01" />
+                            </svg>
+                            Scan QR
+                        </button>
+                        <button class="btn-new-complaint" id="btn-open-form">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                            New Complaint
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Stats cards -->
@@ -409,9 +423,27 @@
         </div>
     </div>
 
+    <!-- QR SCANNER MODAL -->
+    <div class="modal-overlay" id="qr-modal" style="display:none">
+        <div class="rating-modal-box" style="max-width: 450px;">
+            <div class="rating-modal-header">
+                <p class="rating-modal-title">📸 Scan Restroom QR</p>
+                <p class="rating-modal-sub">Align the QR code on the restroom wall within the frame.</p>
+            </div>
+
+            <div id="qr-reader" style="width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 20px;"></div>
+
+            <div class="rating-modal-actions">
+                <button class="btn-rating-cancel" id="qr-cancel" style="width: 100%;">Close Scanner</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="../js/supabase-init.js"></script>
+    <script src="../js/supabase.js"></script>
     <script src="../js/app.js"></script>
     <script src="student.js"></script>
 </body>

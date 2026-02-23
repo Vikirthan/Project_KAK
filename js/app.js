@@ -159,8 +159,15 @@ const KAK = {
 // =============================================
 
 /** 
+ * Dual-Backend Config:
+ * dataClient -> window.supabaseClient (from js/supabase.js - The MATRIX)
+ * photoClient -> window.kakSupabase (from js/supabase-init.js - MEDIA)
+ */
+const dataClient = window.supabaseClient;
+const photoClient = window.kakSupabase;
+
+/** 
  * Map local JS object keys to Supabase Column Names
- * This ensures consistency between the UI and the Database.
  */
 const DB_MAP = {
   id: 'id',
@@ -194,15 +201,15 @@ const DB_MAP = {
 
 /** Fetch all complaints from Supabase */
 async function getComplaints() {
-  if (!window.kakSupabase) return KAK.get('complaints') || [];
+  if (!dataClient) return KAK.get('complaints') || [];
 
-  const { data, error } = await window.kakSupabase
+  const { data, error } = await dataClient
     .from('complaints')
     .select('*')
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching complaints:', error);
+    console.error('[KAK-DATA] Error fetching complaints:', error);
     return KAK.get('complaints') || [];
   }
 
@@ -241,7 +248,7 @@ async function getComplaints() {
 
 /** Add a new complaint to Supabase */
 async function addComplaint(c) {
-  if (!window.kakSupabase) {
+  if (!dataClient) {
     const l = KAK.get('complaints') || [];
     l.push(c);
     KAK.save('complaints', l);
@@ -254,13 +261,13 @@ async function addComplaint(c) {
     if (c[jsKey] !== undefined) row[dbKey] = c[jsKey];
   }
 
-  const { error } = await window.kakSupabase.from('complaints').insert([row]);
-  if (error) console.error('Error adding complaint:', error);
+  const { error } = await dataClient.from('complaints').insert([row]);
+  if (error) console.error('[KAK-DATA] Error adding complaint:', error);
 }
 
 /** Update a complaint in Supabase */
 async function updateComplaint(ticketId, patch) {
-  if (!window.kakSupabase) {
+  if (!dataClient) {
     const list = KAK.get('complaints') || [];
     const idx = list.findIndex(c => c.ticketId === ticketId);
     if (idx === -1) return;
@@ -276,24 +283,26 @@ async function updateComplaint(ticketId, patch) {
     if (dbKey) dbPatch[dbKey] = patch[key];
   }
 
-  const { data, error } = await window.kakSupabase
+  const { data, error } = await dataClient
     .from('complaints')
     .update(dbPatch)
     .eq('ticket_id', ticketId)
     .select();
 
-  if (error) console.error('Error updating complaint:', error);
+  if (error) console.error('[KAK-DATA] Error updating complaint:', error);
   return data ? data[0] : null;
 }
 
 /** Upload a photo to Supabase Storage and return the public URL */
 async function uploadPhotoToSupabase(fileOrDataURL, fileName) {
-  if (!window.kakSupabase) return fileOrDataURL; // Fallback to dataURL if no Supabase
+  if (!photoClient) {
+    console.error('[KAK-PHOTO] Photo client not initialized.');
+    return fileOrDataURL;
+  }
 
   try {
     let blob;
     if (typeof fileOrDataURL === 'string' && fileOrDataURL.startsWith('data:')) {
-      // Convert dataURL to Blob
       const res = await fetch(fileOrDataURL);
       blob = await res.blob();
     } else {
@@ -301,19 +310,23 @@ async function uploadPhotoToSupabase(fileOrDataURL, fileName) {
     }
 
     const filePath = `${Date.now()}_${fileName}`;
-    const { data, error } = await window.kakSupabase.storage
+    const { data, error } = await photoClient.storage
       .from('complaint-photos')
-      .upload(filePath, blob);
+      .upload(filePath, blob, { contentType: blob.type });
 
-    if (error) throw error;
+    if (error) {
+      console.error('[KAK-PHOTO] Upload error details:', error);
+      throw error;
+    }
 
-    const { data: { publicUrl } } = window.kakSupabase.storage
+    const { data: { publicUrl } } = photoClient.storage
       .from('complaint-photos')
       .getPublicUrl(filePath);
 
+    console.log('[KAK-PHOTO] Upload success:', publicUrl);
     return publicUrl;
   } catch (err) {
-    console.error('Photo upload failed:', err);
+    console.error('[KAK-PHOTO] Photo upload process failed:', err);
     return typeof fileOrDataURL === 'string' ? fileOrDataURL : null;
   }
 }

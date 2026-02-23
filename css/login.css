@@ -222,17 +222,15 @@
     color: var(--text-muted);
 }
 
-/* Titles */
-.login-title {
-    font-size: 26px;
-    font-weight: 700;
-    margin-bottom: 6px;
-}
+@media (max-width: 480px) {
+    .login-title {
+        font-size: 22px;
+    }
 
-.login-subtitle {
-    font-size: 14px;
-    color: var(--text-muted);
-    margin-bottom: 28px;
+    .login-subtitle {
+        font-size: 13px;
+        margin-bottom: 24px;
+    }
 }
 
 /* Role pills */
@@ -468,11 +466,16 @@
     gap: 8px;
 }
 
-.hint-row {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    flex-wrap: wrap;
+@media (max-width: 400px) {
+    .hint-row {
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 8px;
+    }
+
+    .hint-role {
+        align-self: flex-start;
+    }
 }
 
 .hint-role {

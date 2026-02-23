@@ -166,6 +166,20 @@
     color: #f87171;
 }
 
+@media (max-width: 480px) {
+    .nav-logout-btn {
+        padding: 7px 10px;
+    }
+
+    .nav-logout-btn span {
+        display: none;
+    }
+
+    .nav-logout-btn svg {
+        margin: 0;
+    }
+}
+
 /* ---- VIEWS ---- */
 .student-view {
     display: none;
@@ -404,13 +418,22 @@
     min-width: 0;
 }
 
-.complaint-card-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 8px;
+@media (max-width: 480px) {
+    .complaint-card {
+        padding: 14px;
+        gap: 12px;
+    }
+
+    .complaint-card-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .status-badge {
+        order: -1;
+        margin-bottom: 4px;
+    }
 }
 
 .complaint-block-label {
