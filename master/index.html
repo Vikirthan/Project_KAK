@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Admin | KAK Hygiene System</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="icon" href="../assets/favicon.ico">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body class="dark-mode">
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-text">KAK <span class="logo-highlight">MASTER</span></span>
+            </div>
+            <div class="nav-links">
+                <span id="nav-name" class="user-name">Master Admin</span>
+                <button id="btn-logout" class="btn-logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="admin-container">
+        <header class="admin-header">
+            <div class="header-main">
+                <h1>Global Control Center</h1>
+                <p class="subtitle">System-wide monitoring & database management</p>
+            </div>
+            <div class="header-actions">
+                <button id="btn-refresh" class="btn-secondary">🔄 Refresh Data</button>
+                <button id="btn-wipe" class="btn-danger">☢️ WIPE DATABASE</button>
+            </div>
+        </header>
+
+        <section class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">Total Complaints</span>
+                <span id="total-complaints" class="stat-value">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Active Issues</span>
+                <span id="active-complaints" class="stat-value">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Total Supervisors</span>
+                <span id="total-supervisors" class="stat-value">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">System Health</span>
+                <span class="stat-value green">ONLINE</span>
+            </div>
+        </section>
+
+        <div class="admin-main-grid">
+            <section class="data-section">
+                <div class="section-header">
+                    <h2>Live Complaints Feed</h2>
+                    <input type="text" id="search-data" placeholder="Search by Ticket or Block...">
+                </div>
+                <div class="table-container">
+                    <table id="complaints-table">
+                        <thead>
+                            <tr>
+                                <th>Ticket ID</th>
+                                <th>Block</th>
+                                <th>Issue</th>
+                                <th>Status</th>
+                                <th>Supervisor</th>
+                                <th>Rating</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody id="complaints-body">
+                            <!-- Data injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="data-section">
+                <div class="section-header">
+                    <h2>Supervisor Performance</h2>
+                </div>
+                <div class="table-container">
+                    <table id="supervisors-table">
+                        <thead>
+                            <tr>
+                                <th>UID</th>
+                                <th>Resolved</th>
+                                <th>Missed</th>
+                                <th>Black Points</th>
+                                <th>Avg Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody id="supervisors-body">
+                            <!-- Data injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Confirmation Modal for Wipe -->
+    <div id="wipe-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-box danger-zone">
+            <div class="modal-header">
+                <h2>CRITICAL ACTION</h2>
+                <p>This will permanently delete ALL complaints and RESET all supervisor statistics from the Supabase
+                    database. This cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-wipe" class="btn-secondary">Cancel</button>
+                <button id="confirm-wipe" class="btn-danger">YES, WIPE EVERYTHING</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="admin.js"></script>
+</body>
+
+</html>

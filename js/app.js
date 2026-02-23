@@ -24,6 +24,9 @@ const KAK_USERS = {
 
   // ---------- VENDOR ----------
   'ven': { password: 'Viki', role: 'vendor', name: 'Vendor Manager', uid: 'VEN-001', redirectTo: '../vendor/index.html' },
+
+  // ---------- MASTER ADMIN ----------
+  'Vikirthan': { password: 'Viki', role: 'admin', name: 'Master Admin – Vikirthan', uid: 'ADMIN-01', redirectTo: '../master/index.html' },
 };
 
 // =============================================
@@ -194,7 +197,9 @@ const DB_MAP = {
   resolvedAt: 'resolved_at',
   aoResolvedAt: 'ao_resolved_at',
   aoResolutionPhoto: 'ao_resolution_photo',
-  resolvedOnTime: 'resolved_on_time'
+  resolvedOnTime: 'resolved_on_time',
+  acceptanceDeadline: 'acceptance_deadline',
+  autoAccepted: 'auto_accepted'
 };
 
 /** Fetch all complaints from Supabase */
@@ -241,6 +246,8 @@ async function getComplaints() {
     aoResolvedAt: row.ao_resolved_at,
     aoResolutionPhoto: row.ao_resolution_photo,
     resolvedOnTime: row.resolved_on_time,
+    acceptanceDeadline: row.acceptance_deadline,
+    autoAccepted: row.auto_accepted,
     id: row.id
   }));
 }

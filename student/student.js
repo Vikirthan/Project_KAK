@@ -390,7 +390,7 @@
     setInterval(async () => {
         await runEscalationEngine();
         await renderDashboard();
-    }, 5000);
+    }, 3000);
 
     /* =========================================================
        5. COMPLAINT FORM LOGIC

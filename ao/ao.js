@@ -397,7 +397,7 @@
 
     // 1. Upload to Supabase Storage
     let finalPhotoURL = photoData;
-    if (window.kakSupabase) {
+    if (window.supabaseClient) {
       finalPhotoURL = await uploadPhotoToSupabase(photoData, `${activeTicket}_ao_res.jpg`);
     }
 
@@ -421,8 +421,8 @@
     await render();
   });
 
-  /* ── Initial render + Fast Refresh (5s) ── */
+  /* ── Initial render + Refresh (3s) ── */
   render();
-  setInterval(async () => { await runEscalationEngine(); await render(); }, 5000);
+  setInterval(async () => { await runEscalationEngine(); await render(); }, 3000);
 
 })();

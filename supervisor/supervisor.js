@@ -462,6 +462,6 @@
      INITIAL RENDER + AUTO-REFRESH EVERY 5s
   ───────────────────────────────────────────── */
   render();
-  setInterval(async () => { await runEscalationEngine(); await render(); }, 5000);
+  setInterval(async () => { await runEscalationEngine(); await render(); }, 2000);
 
 })();
