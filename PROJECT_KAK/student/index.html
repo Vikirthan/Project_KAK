@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Dashboard – KAK | LPU</title>
+    <meta name="description" content="Student hygiene complaint dashboard – track your complaints at LPU." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="student.css" />
+</head>
+
+<body class="form-page">
+
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- BLOCK WISE RANKING SIDEBAR -->
+    <aside class="ranking-sidebar">
+        <h3 class="sidebar-title">Block Wise Ranking</h3>
+        <div id="ranking-sidebar-list">
+            <!-- Ranking items injected by JS -->
+            <div style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 10px;">
+                Loading rankings...
+            </div>
+        </div>
+    </aside>
+
+    <!-- ============================================================
+       TOP NAVBAR
+  ============================================================ -->
+    <nav class="top-nav" id="top-nav">
+        <div class="nav-brand">
+            <div class="nav-logo">✓</div>
+            <div>
+                <span class="nav-title">KAK</span>
+                <span class="nav-sub">Hygiene System · LPU</span>
+            </div>
+        </div>
+        <div class="nav-user" id="nav-user">
+            <span class="nav-user-avatar" id="nav-avatar">S</span>
+            <div class="nav-user-info">
+                <span class="nav-user-name" id="nav-name">Student</span>
+                <span class="nav-user-uid" id="nav-uid">UID: –</span>
+            </div>
+            <button class="nav-logout-btn" id="btn-logout" title="Logout">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16,17 21,12 16,7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- ============================================================
+       MAIN WRAPPER (two views toggled by JS)
+  ============================================================ -->
+    <div class="student-main" id="student-main">
+
+        <!-- ==================== VIEW: DASHBOARD ==================== -->
+        <div id="view-dashboard" class="student-view active-view">
+
+            <div class="dashboard-container">
+
+                <!-- Welcome banner -->
+                <div class="welcome-banner" id="welcome-banner">
+                    <div class="welcome-text">
+                        <h1 class="welcome-title">Good <span id="greeting-time">day</span>, <span
+                                id="greeting-name">Student</span> 👋</h1>
+                        <p class="welcome-sub">Here's a summary of your hygiene complaints at LPU.</p>
+                    </div>
+                    <button class="btn-new-complaint" id="btn-open-form">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        New Complaint
+                    </button>
+                </div>
+
+                <!-- Stats cards -->
+                <div class="stats-grid" id="stats-grid">
+                    <div class="stat-card card-total">
+                        <div class="stat-card-icon">📋</div>
+                        <div class="stat-card-info">
+                            <span class="stat-card-num" id="stat-total">0</span>
+                            <span class="stat-card-label">Total Registered</span>
+                        </div>
+                    </div>
+                    <div class="stat-card card-resolved">
+                        <div class="stat-card-icon">✅</div>
+                        <div class="stat-card-info">
+                            <span class="stat-card-num" id="stat-resolved">0</span>
+                            <span class="stat-card-label">Resolved On Time</span>
+                        </div>
+                    </div>
+                    <div class="stat-card card-missed">
+                        <div class="stat-card-icon">⚠️</div>
+                        <div class="stat-card-info">
+                            <span class="stat-card-num" id="stat-missed">0</span>
+                            <span class="stat-card-label">Missed Deadline</span>
+                        </div>
+                    </div>
+                    <div class="stat-card card-pending">
+                        <div class="stat-card-icon">🕐</div>
+                        <div class="stat-card-info">
+                            <span class="stat-card-num" id="stat-pending">0</span>
+                            <span class="stat-card-label">In Progress</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Complaint history -->
+                <div class="section-header">
+                    <h2 class="section-title">My Complaints</h2>
+                    <span class="section-badge" id="complaint-count-badge">0 total</span>
+                </div>
+
+                <!-- Empty state -->
+                <div class="empty-state" id="empty-state">
+                    <div class="empty-icon">🚿</div>
+                    <h3 class="empty-title">No complaints yet</h3>
+                    <p class="empty-desc">Spotted an issue? Tap below to report it instantly.</p>
+                    <button class="btn-new-complaint" id="btn-open-form-2" style="margin-top:8px">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        Raise a Complaint
+                    </button>
+                </div>
+
+                <!-- Complaints list -->
+                <div class="complaints-list" id="complaints-list"></div>
+
+            </div>
+        </div>
+
+        <!-- ==================== VIEW: COMPLAINT FORM ==================== -->
+        <div id="view-form" class="student-view">
+
+            <div class="form-container">
+
+                <!-- Form Header -->
+                <header class="form-header">
+                    <button class="back-btn" id="btn-back-to-dash" title="Back to dashboard">←</button>
+                    <div class="form-header-text">
+                        <h1>New Complaint</h1>
+                        <p>Restroom hygiene issue report</p>
+                    </div>
+                    <span class="form-badge badge-student">🎓 Student</span>
+                </header>
+
+                <!-- Progress Steps -->
+                <div class="progress-steps" id="progress-steps">
+                    <div class="step active" id="step-1">
+                        <div class="step-circle">1</div>
+                        <span class="step-label">Your Info</span>
+                    </div>
+                    <div class="step" id="step-2">
+                        <div class="step-circle">2</div>
+                        <span class="step-label">Location</span>
+                    </div>
+                    <div class="step" id="step-3">
+                        <div class="step-circle">3</div>
+                        <span class="step-label">Photo</span>
+                    </div>
+                    <div class="step" id="step-4">
+                        <div class="step-circle">4</div>
+                        <span class="step-label">Submit</span>
+                    </div>
+                </div>
+
+                <!-- Info Box -->
+                <div class="info-box" id="info-box">
+                    <span class="info-box-icon">⏱️</span>
+                    <span class="info-box-text">
+                        Your complaint is assigned to the block supervisor immediately. Issues must be resolved within
+                        <strong>30 minutes</strong> — otherwise it escalates to the AO Office automatically.
+                    </span>
+                </div>
+
+                <!-- FORM -->
+                <form id="complaint-form" novalidate>
+
+                    <!-- Card 1: Student Details -->
+                    <div class="card fade-card" id="card-student">
+                        <p class="card-title">
+                            Student Information
+                            <span class="prefill-badge">✦ Auto-filled</span>
+                        </p>
+                        <div class="form-grid">
+
+                            <div class="form-group">
+                                <label for="student-name">Full Name <span class="required">*</span></label>
+                                <input type="text" id="student-name" name="studentName" placeholder="e.g. Rahul Sharma"
+                                    autocomplete="name" maxlength="80" />
+                                <span class="field-error" id="err-name">Please enter your full name.</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="reg-no">Registration No. <span class="required">*</span></label>
+                                <input type="text" id="reg-no" name="regNo" placeholder="e.g. 12312345"
+                                    maxlength="20" />
+                                <span class="field-error" id="err-reg">Please enter your registration number.</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="phone">Mobile Number <span class="required">*</span></label>
+                                <input type="tel" id="phone" name="phone" placeholder="e.g. 9876543210" maxlength="10"
+                                    inputmode="numeric" />
+                                <span class="field-error" id="err-phone">Enter a valid 10-digit mobile number.</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Location -->
+                    <div class="card fade-card" id="card-location">
+                        <p class="card-title">Restroom Location</p>
+                        <div class="form-grid">
+
+                            <div class="form-group full">
+                                <label for="block-select">Block – Floor <span class="required">*</span></label>
+                                <div class="select-wrap">
+                                    <select id="block-select" name="block">
+                                        <option value="" disabled selected>— Select your block &amp; floor —</option>
+                                        <option value="36-2nd">Block 36 – 2nd Floor</option>
+                                        <option value="36-3rd">Block 36 – 3rd Floor</option>
+                                        <option value="36-5th">Block 36 – 5th Floor</option>
+                                        <option value="35-2nd">Block 35 – 2nd Floor</option>
+                                        <option value="35-3rd">Block 35 – 3rd Floor</option>
+                                        <option value="35-5th">Block 35 – 5th Floor</option>
+                                        <option value="34-2nd">Block 34 – 2nd Floor</option>
+                                        <option value="34-3rd">Block 34 – 3rd Floor</option>
+                                        <option value="34-5th">Block 34 – 5th Floor</option>
+                                    </select>
+                                </div>
+                                <span class="field-error" id="err-block">Please select the block and floor.</span>
+                            </div>
+
+                            <div class="form-group full">
+                                <label for="issue-type">Issue Type <span class="required">*</span></label>
+                                <div class="select-wrap">
+                                    <select id="issue-type" name="issueType">
+                                        <option value="" disabled selected>— Select issue type —</option>
+                                        <option value="Dirty/Unhygienic">🚽 Dirty / Unhygienic</option>
+                                        <option value="Water Leakage">💧 Water Leakage</option>
+                                        <option value="Broken Fixture">🔧 Broken Fixture</option>
+                                        <option value="Blocked Drain">🚫 Blocked Drain</option>
+                                        <option value="No Water Supply">❌ No Water Supply</option>
+                                        <option value="Bad Odour">😷 Bad Odour</option>
+                                        <option value="Broken Door/Lock">🔒 Broken Door / Lock</option>
+                                        <option value="Other">📋 Other</option>
+                                    </select>
+                                </div>
+                                <span class="field-error" id="err-issue">Please select the issue type.</span>
+                            </div>
+
+                            <div class="form-group full">
+                                <label for="description">Brief Description <span
+                                        style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+                                <textarea id="description" name="description"
+                                    placeholder="Describe the issue briefly… e.g. Floor is wet, bad smell since morning"
+                                    maxlength="300"></textarea>
+                                <span class="char-count" id="char-count">0 / 300</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Photo Upload -->
+                    <div class="card fade-card" id="card-photo">
+                        <p class="card-title">Attach Photo Evidence</p>
+
+                        <div class="upload-zone" id="upload-zone">
+                            <input type="file" id="photo-input" name="photo" accept="image/*" capture="environment" />
+                            <span class="upload-icon">📸</span>
+                            <span class="upload-text">Tap to take a photo or upload from gallery</span>
+                            <span class="upload-subtext">A clear photo helps faster resolution</span>
+                            <span class="upload-limit">JPG, PNG, WEBP · Max 10 MB</span>
+                        </div>
+
+                        <div class="photo-preview-wrap" id="photo-preview-wrap">
+                            <img src="" alt="Preview" class="photo-preview-img" id="photo-preview-img" />
+                            <button type="button" class="photo-remove-btn" id="photo-remove-btn"
+                                title="Remove photo">✕</button>
+                        </div>
+                        <span class="field-error" id="err-photo">Please attach a photo of the issue.</span>
+
+                        <div class="photo-note">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                <circle cx="7" cy="7" r="6.5" stroke="#64748b" />
+                                <path d="M7 6v4M7 4.5v.5" stroke="#64748b" stroke-width="1.2" stroke-linecap="round" />
+                            </svg>
+                            After your issue is resolved and approved by you, the photo is permanently deleted from our
+                            servers.
+                        </div>
+                    </div>
+
+                    <!-- Declaration -->
+                    <div class="declaration-box" id="declaration-box">
+                        <label class="checkbox-label" for="declaration-check">
+                            <input type="checkbox" id="declaration-check" name="declaration" />
+                            <span class="checkmark"></span>
+                            <span class="checkbox-text">
+                                I confirm the information provided is accurate and this report is genuine. False reports
+                                may lead to disciplinary action.
+                            </span>
+                        </label>
+                        <span class="field-error" id="err-declaration">You must confirm the declaration to
+                            proceed.</span>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" class="btn-submit" id="btn-submit">
+                        <span id="submit-text">Submit Complaint</span>
+                        <div class="spinner" id="submit-spinner"></div>
+                        <span id="submit-icon">🚀</span>
+                    </button>
+
+                </form>
+
+                <!-- SUCCESS SCREEN -->
+                <div class="success-screen" id="success-screen">
+                    <div class="success-icon-wrap">✅</div>
+                    <h2 class="success-title">Complaint Submitted!</h2>
+                    <p class="success-desc">
+                        Your complaint has been forwarded to the block supervisor. You'll be notified once it's
+                        resolved.
+                    </p>
+                    <div class="ticket-id" id="ticket-id-display">– – – –</div>
+
+                    <div class="success-timeline">
+                        <div class="timeline-item done">
+                            <div class="tl-dot">✓</div>
+                            <div class="tl-content">
+                                <span class="tl-label">Complaint Registered</span>
+                                <span class="tl-time" id="tl-submitted-time">Just now</span>
+                            </div>
+                        </div>
+                        <div class="timeline-item pending">
+                            <div class="tl-dot">2</div>
+                            <div class="tl-content">
+                                <span class="tl-label">Supervisor Notified</span>
+                                <span class="tl-time">30-min timer started</span>
+                            </div>
+                        </div>
+                        <div class="timeline-item pending">
+                            <div class="tl-dot">3</div>
+                            <div class="tl-content">
+                                <span class="tl-label">Issue Resolved &amp; Photo Uploaded</span>
+                                <span class="tl-time">Awaiting supervisor action</span>
+                            </div>
+                        </div>
+                        <div class="timeline-item pending">
+                            <div class="tl-dot">4</div>
+                            <div class="tl-content">
+                                <span class="tl-label">Your Approval</span>
+                                <span class="tl-time">You review &amp; confirm</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="success-actions">
+                        <button class="btn-submit" style="max-width:220px;margin:0 auto" onclick="goToDashboard()">
+                            View Dashboard
+                        </button>
+                        <button class="btn-secondary" onclick="resetFormView()">Submit Another</button>
+                    </div>
+                </div>
+
+            </div><!-- /form-container -->
+        </div><!-- /view-form -->
+
+    </div><!-- /student-main -->
+
+    <!-- ★ RATING MODAL -->
+    <div class="modal-overlay" id="rating-modal" style="display:none">
+        <div class="rating-modal-box">
+            <div class="rating-modal-header">
+                <p class="rating-modal-title">⭐ Rate the Resolution</p>
+                <p class="rating-modal-sub">How satisfied are you with how the issue was resolved?</p>
+            </div>
+            <div class="star-picker">
+                <button class="star-btn" data-star="1">☆</button>
+                <button class="star-btn" data-star="2">☆</button>
+                <button class="star-btn" data-star="3">☆</button>
+                <button class="star-btn" data-star="4">☆</button>
+                <button class="star-btn" data-star="5">☆</button>
+            </div>
+            <p class="rating-err" id="rating-err" style="display:none">Please select a star rating.</p>
+            <div class="rating-modal-actions">
+                <button class="btn-rating-cancel" id="rating-cancel">Cancel</button>
+                <button class="btn-rating-submit" id="rating-submit">Submit Rating</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase-init.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="student.js"></script>
+</body>
+
+</html>

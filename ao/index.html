@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AO Office Portal – KAK</title>
+    <meta name="description"
+        content="AO Office dashboard for escalated hygiene complaints — KAK Hygiene Management System." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="ao.css" />
+</head>
+
+<body class="ao-page">
+
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- BLOCK WISE RANKING SIDEBAR -->
+    <aside class="ranking-sidebar">
+        <h3 class="sidebar-title">Block Wise Ranking</h3>
+        <div id="ranking-sidebar-list">
+            <!-- Ranking items injected by JS -->
+            <div style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 10px;">
+                Loading rankings...
+            </div>
+        </div>
+    </aside>
+
+    <!-- ── NAV ── -->
+    <nav class="ao-nav">
+        <div class="nav-brand">
+            <div class="nav-logo">🏢</div>
+            <div>
+                <div class="nav-title">AO Office</div>
+                <div class="nav-sub">Escalated Complaints Dashboard</div>
+            </div>
+        </div>
+        <div class="nav-right">
+            <span class="nav-name" id="nav-name">AO Office</span>
+            <button class="btn-logout" id="btn-logout">Logout</button>
+        </div>
+    </nav>
+
+    <!-- ── MAIN ── -->
+    <main class="ao-main">
+
+        <!-- Alert banner if any overdue -->
+        <div class="overdue-banner" id="overdue-banner" style="display:none">
+            ⚠️ Some complaints have exceeded the AO window — Black Points have been awarded.
+        </div>
+
+        <!-- Stats row -->
+        <section class="ao-stats" id="ao-stats">
+            <div class="stat-chip">
+                <span class="stat-val" id="stat-escalated">0</span>
+                <span class="stat-label">Escalated to AO</span>
+            </div>
+            <div class="stat-chip stat-active">
+                <span class="stat-val" id="stat-active">0</span>
+                <span class="stat-label">Active Now</span>
+            </div>
+            <div class="stat-chip stat-resolved">
+                <span class="stat-val" id="stat-ao-resolved">0</span>
+                <span class="stat-label">Resolved by AO</span>
+            </div>
+            <div class="stat-chip stat-overdue">
+                <span class="stat-val" id="stat-overdue">0</span>
+                <span class="stat-label">Overdue (⚫ given)</span>
+            </div>
+            <div class="stat-chip stat-review">
+                <span class="stat-val" id="stat-review">0</span>
+                <span class="stat-label">Quality Reviews (<4⭐)< /span>
+            </div>
+        </section>
+
+        <!-- ── SUPERVISOR PERFORMANCE (BLOCK SPECIFIC) ── -->
+        <section class="ao-section supervisor-perf-section">
+            <div class="section-header">
+                <h2 class="section-title">📊 Supervisor Performance Summary</h2>
+            </div>
+            <div class="sup-perf-grid">
+                <div class="sup-perf-card">
+                    <span class="perf-val" id="perf-ratings">–</span>
+                    <span class="perf-label">Avg. Rating</span>
+                    <div class="perf-stars" id="perf-stars"></div>
+                </div>
+                <div class="sup-perf-card">
+                    <span class="perf-val" id="perf-received">0</span>
+                    <span class="perf-label">Total Received</span>
+                </div>
+                <div class="sup-perf-card">
+                    <span class="perf-val" id="perf-ontime">0</span>
+                    <span class="perf-label">Resolved On-Time</span>
+                </div>
+                <div class="sup-perf-card">
+                    <span class="perf-val" id="perf-missed">0</span>
+                    <span class="perf-label">Missed / Escalated</span>
+                </div>
+                <div class="sup-perf-card perf-danger">
+                    <span class="perf-val" id="perf-black">0 ⚫</span>
+                    <span class="perf-label">Black Points</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── QUALITY REVIEW (LOW RATING) ── -->
+        <section class="ao-section section-review">
+            <div class="section-header">
+                <h2 class="section-title">⚠️ Quality Review (Low Ratings)</h2>
+                <span class="section-badge badge-warn" id="badge-review">0</span>
+            </div>
+            <div class="ao-list" id="ao-review-list">
+                <div class="empty-state" id="empty-review">
+                    <div class="empty-icon">⭐</div>
+                    <p>No quality reviews pending.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── ACTIVE ESCALATED ── -->
+        <section class="ao-section">
+            <div class="section-header">
+                <h2 class="section-title">🚨 Active Escalated Complaints</h2>
+                <span class="section-badge" id="badge-active">0</span>
+            </div>
+            <div class="ao-list" id="ao-active-list">
+                <div class="empty-state" id="empty-active">
+                    <div class="empty-icon">✅</div>
+                    <p>No active escalated complaints right now.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── RESOLVED BY AO ── -->
+        <section class="ao-section">
+            <div class="section-header">
+                <h2 class="section-title">✅ Resolved by AO</h2>
+                <span class="section-badge badge-green" id="badge-ao-resolved">0</span>
+            </div>
+            <div class="ao-list" id="ao-resolved-list">
+                <div class="empty-state" id="empty-ao-resolved">
+                    <div class="empty-icon">📭</div>
+                    <p>No AO-resolved complaints yet.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── OVERDUE (BLACK POINTS) ── -->
+        <section class="ao-section">
+            <div class="section-header">
+                <h2 class="section-title">⚫ Overdue — Black Points Awarded</h2>
+                <span class="section-badge badge-red" id="badge-overdue">0</span>
+            </div>
+            <div class="ao-list" id="ao-overdue-list">
+                <div class="empty-state" id="empty-overdue">
+                    <div class="empty-icon">🟢</div>
+                    <p>No overdue complaints. Keep it up!</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ── RESOLVE MODAL ── -->
+    <div class="ao-modal-overlay" id="ao-resolve-modal" style="display:none">
+        <div class="ao-modal-box">
+            <div class="ao-modal-header">
+                <h3>Mark as Resolved</h3>
+                <span class="modal-ticket-lbl" id="ao-modal-ticket-label"></span>
+            </div>
+            <p class="ao-modal-note">Upload a photo confirming the issue has been resolved. This will close the
+                complaint and notify the student.</p>
+
+            <!-- Photo upload -->
+            <div class="ao-upload-zone" id="ao-upload-zone">
+                <input type="file" id="ao-photo-input" accept="image/*" style="display:none" />
+                <label for="ao-photo-input" class="ao-upload-label">
+                    <span class="ao-upload-icon">📸</span>
+                    <span>Click or drag to upload resolution photo</span>
+                    <span class="ao-upload-hint">Required — max 5 MB</span>
+                </label>
+            </div>
+            <div class="ao-preview-wrap" id="ao-preview-wrap" style="display:none">
+                <img id="ao-preview-img" src="" alt="Preview" />
+                <button class="ao-remove-btn" id="ao-remove-btn">✕ Remove</button>
+            </div>
+            <p class="ao-photo-err" id="ao-photo-err" style="display:none">Please upload a resolution photo.</p>
+
+            <div class="ao-modal-actions">
+                <button class="btn-ao-cancel" id="ao-modal-cancel">Cancel</button>
+                <button class="btn-ao-confirm" id="ao-modal-confirm">
+                    <span id="ao-confirm-text">✅ Confirm Resolved</span>
+                    <div class="btn-spinner" id="ao-confirm-spinner" style="display:none"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase-init.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="ao.js"></script>
+</body>
+
+</html>

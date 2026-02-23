@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Supervisor Dashboard – KAK | LPU</title>
+    <meta name="description" content="Supervisor portal — manage hygiene complaints for your block." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="supervisor.css" />
+</head>
+
+<body class="form-page">
+
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- BLOCK WISE RANKING SIDEBAR -->
+    <aside class="ranking-sidebar">
+        <h3 class="sidebar-title">Block Wise Ranking</h3>
+        <div id="ranking-sidebar-list">
+            <!-- Ranking items injected by JS -->
+            <div style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 10px;">
+                Loading rankings...
+            </div>
+        </div>
+    </aside>
+
+    <!-- NAVBAR -->
+    <nav class="top-nav" id="top-nav">
+        <div class="nav-brand">
+            <div class="nav-logo">🔧</div>
+            <div>
+                <span class="nav-title">KAK</span>
+                <span class="nav-sub">Supervisor Portal · LPU</span>
+            </div>
+        </div>
+        <div class="nav-user">
+            <div class="nav-block-badge" id="nav-block-badge">Block –</div>
+            <div class="nav-user-info">
+                <span class="nav-user-name" id="nav-name">Supervisor</span>
+                <span class="nav-user-uid" id="nav-uid">UID: –</span>
+            </div>
+            <button class="nav-logout-btn" id="btn-logout">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16,17 21,12 16,7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- MAIN -->
+    <div class="sup-main" id="sup-main">
+
+        <!-- HEADER -->
+        <div class="sup-header">
+            <div>
+                <h1 class="sup-title" id="sup-title">Block – Dashboard</h1>
+                <p class="sup-subtitle">Complaints assigned to your block — resolve within 30 minutes to avoid
+                    escalation.</p>
+            </div>
+            <div class="sup-live-badge">
+                <span class="live-dot"></span> Live
+            </div>
+        </div>
+
+        <!-- STATS ROW -->
+        <div class="sup-stats" id="sup-stats">
+            <div class="sup-stat-card">
+                <span class="sup-stat-num" id="stat-total">0</span>
+                <span class="sup-stat-label">Total Received</span>
+            </div>
+            <div class="sup-stat-card stat-green">
+                <span class="sup-stat-num" id="stat-resolved">0</span>
+                <span class="sup-stat-label">Resolved On Time</span>
+            </div>
+            <div class="sup-stat-card stat-red">
+                <span class="sup-stat-num" id="stat-missed">0</span>
+                <span class="sup-stat-label">Missed / Escalated</span>
+            </div>
+            <div class="sup-stat-card stat-yellow">
+                <span class="sup-stat-num" id="stat-black">0 ⚫</span>
+                <span class="sup-stat-label">Black Points</span>
+            </div>
+            <div class="sup-stat-card stat-purple">
+                <span class="sup-stat-num" id="stat-rating">–</span>
+                <span class="sup-stat-label">Avg Rating</span>
+            </div>
+        </div>
+
+        <!-- FLAGGED WARNING -->
+        <div class="flagged-alert" id="flagged-alert" style="display:none">
+            ⚠️ <strong>You have reached 5+ black points.</strong> The Vendor Manager has been notified and may contact
+            you.
+        </div>
+
+        <!-- AUTO-ACCEPT ALERT -->
+        <div class="flagged-alert auto-accept-alert" id="auto-accept-alert"
+            style="display:none; background: #fbbf24; color: #000; font-weight: 700;">
+            🔔 <strong>AUTO-ACCEPTED!</strong> You missed the 10-min acceptance window. Resolution timer has started
+            automatically. Complete these tasks immediately!
+        </div>
+
+        <!-- AO SUMMON ALERT -->
+        <div class="flagged-alert summoned-alert" id="summoned-alert"
+            style="display:none; background: #dc2626; border: 2px solid #ffffff; color: #ffffff; padding: 20px; font-size: 14px; line-height: 1.5; box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4); display: flex; align-items: center;">
+            <div style="font-size: 26px; margin-right: 15px;">🚨</div>
+            <div style="flex: 1;">
+                <strong
+                    style="font-size: 16px; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800;">Meet
+                    the AO Office Immediately</strong>
+                <span style="font-weight: 600;">You have been reported for low-quality resolution work. Please report to
+                    the AO Office now for an inquiry.</span>
+            </div>
+        </div>
+
+        <!-- NEW REQUESTS (ACCEPTANCE) -->
+        <div class="section-header">
+            <span class="section-title">🆕 New Requests <span class="ao-note">(Accept in 10 mins)</span></span>
+            <span class="section-badge badge-blue" id="badge-acceptance">0</span>
+        </div>
+        <div id="acceptance-list" class="complaint-list">
+            <div class="empty-state" id="empty-acceptance">
+                <div class="empty-icon">📂</div>
+                <p class="empty-title">No new requests</p>
+                <p class="empty-desc">Incoming complaints awaiting your acceptance will appear here.</p>
+            </div>
+        </div>
+
+        <!-- ACTIVE COMPLAINTS -->
+        <div class="section-header mt-32">
+            <span class="section-title">🔴 Active Complaints <span class="ao-note">(Complete in 30 mins)</span></span>
+            <span class="section-badge" id="badge-active">0</span>
+        </div>
+        <div id="active-list" class="complaint-list">
+            <div class="empty-state" id="empty-active">
+                <div class="empty-icon">✅</div>
+                <p class="empty-title">No active work</p>
+                <p class="empty-desc">Complaints you've accepted but haven't resolved yet will appear here.</p>
+            </div>
+        </div>
+
+        <!-- PENDING STUDENT APPROVAL -->
+        <div class="section-header mt-32">
+            <span class="section-title">⏳ Awaiting Student Approval</span>
+            <span class="section-badge" id="badge-approval">0</span>
+        </div>
+        <div id="approval-list" class="complaint-list">
+            <div class="empty-state" id="empty-approval">
+                <div class="empty-icon">🕐</div>
+                <p class="empty-title">No pending approvals</p>
+                <p class="empty-desc">Resolved complaints waiting for student confirmation will appear here.</p>
+            </div>
+        </div>
+
+        <!-- AO ALERTS -->
+        <div class="section-header mt-32">
+            <span class="section-title">🚨 AO Alerts <span class="ao-note">(Escalated — Your Timer Missed)</span></span>
+            <span class="section-badge badge-red" id="badge-ao">0</span>
+        </div>
+        <div id="ao-list" class="complaint-list">
+            <div class="empty-state" id="empty-ao">
+                <div class="empty-icon">🏢</div>
+                <p class="empty-title">No escalations</p>
+                <p class="empty-desc">Complaints escalated to AO Office will appear here.</p>
+            </div>
+        </div>
+
+        <!-- RESOLVED -->
+        <div class="section-header mt-32">
+            <span class="section-title">✅ Resolved</span>
+            <span class="section-badge badge-green" id="badge-resolved">0</span>
+        </div>
+        <div id="resolved-list" class="complaint-list">
+            <div class="empty-state" id="empty-resolved">
+                <div class="empty-icon">📋</div>
+                <p class="empty-title">No resolved complaints yet</p>
+            </div>
+        </div>
+
+    </div><!-- /sup-main -->
+
+    <!-- RESOLVE MODAL -->
+    <div class="modal-overlay" id="resolve-modal" style="display:none">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 class="modal-title">📸 Upload Resolution Photo</h2>
+                <p class="modal-sub" id="modal-ticket-label">Ticket: –</p>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">Take a photo showing the issue has been resolved to confirm completion.</p>
+                <div class="upload-zone" id="sup-upload-zone">
+                    <div class="upload-icon">📷</div>
+                    <p>Tap to upload or take photo</p>
+                    <input type="file" id="sup-photo-input" accept="image/*" capture="environment"
+                        style="position:absolute;inset:0;opacity:0;cursor:pointer" />
+                </div>
+                <div class="sup-preview-wrap" id="sup-preview-wrap" style="display:none">
+                    <img id="sup-preview-img" src="" alt="Resolution photo preview" />
+                    <button class="remove-photo-btn" id="sup-remove-btn">✕ Remove</button>
+                </div>
+                <p class="modal-err" id="modal-photo-err" style="display:none">Please attach a resolution photo.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="modal-cancel">Cancel</button>
+                <button class="btn-confirm" id="modal-confirm">
+                    <span id="modal-confirm-text">Confirm Resolved</span>
+                    <span class="spinner" id="modal-spinner" style="display:none"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase-init.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="supervisor.js"></script>
+</body>
+
+</html>
