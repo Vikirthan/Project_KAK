@@ -35,7 +35,7 @@
   ───────────────────────────────────────────── */
   async function render() {
     const all = await getComplaintsForSupervisor(session.uid);
-    const stat = getSupStat(session.uid);
+    const stat = await getSupStat(session.uid);
 
     const unaccepted = all.filter(c => c.status === 'pending_acceptance');
     const active = all.filter(c => c.status === 'pending_supervisor');
@@ -47,12 +47,12 @@
     document.getElementById('stat-total').textContent = all.length;
     document.getElementById('stat-resolved').textContent = all.filter(c => c.resolvedOnTime).length;
     document.getElementById('stat-missed').textContent = aoAlerts.length;
-    document.getElementById('stat-black').textContent = stat.blackPoints + ' ⚫';
-    const avgR = getAvgRating(session.uid);
-    document.getElementById('stat-rating').textContent = avgR ? '⭐ ' + avgR : '–';
+    document.getElementById('stat-black').textContent = (stat.blackPoints || 0) + ' ⚫';
+    const avgR = stat.avgRating || 0;
+    document.getElementById('stat-rating').textContent = avgR > 0 ? '⭐ ' + avgR : '–';
 
     /* Flagged warning */
-    document.getElementById('flagged-alert').style.display = stat.blackPoints >= 5 ? 'flex' : 'none';
+    document.getElementById('flagged-alert').style.display = (stat.blackPoints || 0) >= 5 ? 'flex' : 'none';
 
     /* Auto-Accept Alert */
     const autoAcceptedComplaints = active.filter(c => c.autoAccepted);
@@ -431,6 +431,9 @@
         time: now.toISOString(), by: session.uid
       }]
     });
+
+    // Update live stats in MATRIX
+    await recordResolutionStats(session.uid, onTime);
 
     modal.style.display = 'none';
     await render();

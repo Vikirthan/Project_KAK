@@ -67,16 +67,16 @@
     const sup = Object.values(KAK_USERS).find(u => u.role === 'supervisor' && u.block === block);
     if (!sup) return;
 
-    const stat = getSupStat(sup.uid);
-    const rating = getAvgRating(sup.uid);
+    const stat = await getSupStat(sup.uid);
+    const rating = stat.avgRating || 0;
     const complaints = await getComplaintsForSupervisor(sup.uid);
 
-    document.getElementById('perf-ratings').textContent = rating || '–';
-    document.getElementById('perf-stars').textContent = rating ? '⭐'.repeat(Math.round(parseFloat(rating))) : '';
+    document.getElementById('perf-ratings').textContent = rating > 0 ? rating : '–';
+    document.getElementById('perf-stars').textContent = rating > 0 ? '⭐'.repeat(Math.round(parseFloat(rating))) : '';
     document.getElementById('perf-received').textContent = complaints.length;
     document.getElementById('perf-ontime').textContent = complaints.filter(c => c.resolvedOnTime).length;
     document.getElementById('perf-missed').textContent = complaints.filter(c => c.status === 'closed_overdue' || c.escalated).length;
-    document.getElementById('perf-black').textContent = stat.blackPoints + ' ⚫';
+    document.getElementById('perf-black').textContent = (stat.blackPoints || 0) + ' ⚫';
   }
 
   function renderList(listId, emptyId, items, cardFn) {

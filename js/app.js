@@ -159,12 +159,10 @@ const KAK = {
 // =============================================
 
 /** 
- * Dual-Backend Config:
- * dataClient -> window.supabaseClient (from js/supabase.js - The MATRIX)
- * photoClient -> window.kakSupabase (from js/supabase-init.js - MEDIA)
+ * Unified Backend Config:
+ * uses window.supabaseClient (from js/supabase.js) for everything.
  */
-const dataClient = window.supabaseClient;
-const photoClient = window.kakSupabase;
+function getClient() { return window.supabaseClient; }
 
 /** 
  * Map local JS object keys to Supabase Column Names
@@ -201,9 +199,10 @@ const DB_MAP = {
 
 /** Fetch all complaints from Supabase */
 async function getComplaints() {
-  if (!dataClient) return KAK.get('complaints') || [];
+  const dc = getClient();
+  if (!dc) return KAK.get('complaints') || [];
 
-  const { data, error } = await dataClient
+  const { data, error } = await dc
     .from('complaints')
     .select('*')
     .order('created_at', { ascending: false });
@@ -248,7 +247,8 @@ async function getComplaints() {
 
 /** Add a new complaint to Supabase */
 async function addComplaint(c) {
-  if (!dataClient) {
+  const dc = getClient();
+  if (!dc) {
     const l = KAK.get('complaints') || [];
     l.push(c);
     KAK.save('complaints', l);
@@ -261,13 +261,30 @@ async function addComplaint(c) {
     if (c[jsKey] !== undefined) row[dbKey] = c[jsKey];
   }
 
-  const { error } = await dataClient.from('complaints').insert([row]);
-  if (error) console.error('[KAK-DATA] Error adding complaint:', error);
+  console.log('[KAK-DATA] Attempting Insert into MATRIX:', row);
+  const { error } = await dc.from('complaints').insert([row]);
+
+  if (error) {
+    console.error('[KAK-DATA] Error adding complaint:', error);
+    throw error; // Rethrow to show alert in UI
+  } else {
+    try {
+      // Also increment total_assigned in stats
+      const stat = getSupStat(c.assignedSupervisor);
+      saveSupStat(c.assignedSupervisor, {
+        totalAssigned: (stat.totalAssigned || 0) + 1
+      });
+      console.log('[KAK-DATA] Stats updated for:', c.assignedSupervisor);
+    } catch (statErr) {
+      console.warn('[KAK-DATA] Stats update failed (non-critical):', statErr);
+    }
+  }
 }
 
 /** Update a complaint in Supabase */
 async function updateComplaint(ticketId, patch) {
-  if (!dataClient) {
+  const dc = getClient();
+  if (!dc) {
     const list = KAK.get('complaints') || [];
     const idx = list.findIndex(c => c.ticketId === ticketId);
     if (idx === -1) return;
@@ -283,7 +300,7 @@ async function updateComplaint(ticketId, patch) {
     if (dbKey) dbPatch[dbKey] = patch[key];
   }
 
-  const { data, error } = await dataClient
+  const { data, error } = await dc
     .from('complaints')
     .update(dbPatch)
     .eq('ticket_id', ticketId)
@@ -295,8 +312,9 @@ async function updateComplaint(ticketId, patch) {
 
 /** Upload a photo to Supabase Storage and return the public URL */
 async function uploadPhotoToSupabase(fileOrDataURL, fileName) {
-  if (!photoClient) {
-    console.error('[KAK-PHOTO] Photo client not initialized.');
+  const pc = getClient();
+  if (!pc) {
+    console.error('[KAK-PHOTO] Supabase client not initialized.');
     return fileOrDataURL;
   }
 
@@ -310,8 +328,8 @@ async function uploadPhotoToSupabase(fileOrDataURL, fileName) {
     }
 
     const filePath = `${Date.now()}_${fileName}`;
-    const { data, error } = await photoClient.storage
-      .from('complaint-photos')
+    const { data, error } = await pc.storage
+      .from('hygiene-reports')
       .upload(filePath, blob, { contentType: blob.type });
 
     if (error) {
@@ -319,8 +337,8 @@ async function uploadPhotoToSupabase(fileOrDataURL, fileName) {
       throw error;
     }
 
-    const { data: { publicUrl } } = photoClient.storage
-      .from('complaint-photos')
+    const { data: { publicUrl } } = pc.storage // Changed photoClient to pc
+      .from('hygiene-reports')
       .getPublicUrl(filePath);
 
     console.log('[KAK-PHOTO] Upload success:', publicUrl);
@@ -331,17 +349,16 @@ async function uploadPhotoToSupabase(fileOrDataURL, fileName) {
   }
 }
 
-/** Delete a photo from Supabase Storage given its public URL */
-async function deletePhotoFromSupabase(url) {
-  if (!window.kakSupabase || !url || !url.includes('/complaint-photos/')) return;
+/** Delete a photo from Supabase Storage */
+async function deletePhotoFromSupabase(publicURL) {
+  const pc = getClient();
+  if (!pc || !publicURL) return;
 
   try {
     // Extract internal path from public URL
-    // Format: https://.../storage/v1/object/public/complaint-photos/PATH
-    const path = url.split('/complaint-photos/').pop();
-    const { error } = await window.kakSupabase.storage
-      .from('complaint-photos')
-      .remove([path]);
+    // Format: https://.../storage/v1/object/public/hygiene-reports/PATH
+    const path = publicURL.split('/hygiene-reports/').pop();
+    const { error } = await pc.storage.from('hygiene-reports').remove([path]);
 
     if (error) console.error('Error deleting photo:', error);
   } catch (err) {
@@ -428,76 +445,123 @@ async function runEscalationEngine() {
 // =============================================
 // SUPERVISOR STATS & BLACK POINTS
 // =============================================
+// =============================================
+// SUPERVISOR STATS & BLACK POINTS (DB SYNC)
+// =============================================
 const SUP_STATS_KEY = 'sup_stats';
 
-function getSupStats() { return KAK.get(SUP_STATS_KEY) || {}; }
+const STATS_DB_MAP = {
+  supervisor_uid: 'supervisor_uid',
+  blackPoints: 'black_points',
+  totalResolved: 'total_resolved',
+  totalAssigned: 'total_assigned',
+  totalMissed: 'total_missed',
+  totalEscalated: 'total_escalated',
+  resolvedOnTime: 'resolved_on_time',
+  avgRating: 'avg_rating',
+  blackPointTickets: 'black_point_tickets'
+};
 
-function getSupStat(supUID) {
-  const all = getSupStats();
-  return all[supUID] || { supUID, blackPoints: 0, blackPointTickets: [], ratings: [], resolvedOnTime: 0, totalAssigned: 0 };
-}
+async function getSupStat(supUID) {
+  const dc = getClient();
+  if (!dc) return KAK.get(SUP_STATS_KEY)?.[supUID] || { supUID, blackPoints: 0, blackPointTickets: [], ratings: [], resolvedOnTime: 0, totalAssigned: 0, totalMissed: 0, totalEscalated: 0 };
 
-function saveSupStat(supUID, stat) {
-  const all = getSupStats();
-  all[supUID] = { ...getSupStat(supUID), ...stat };
-  KAK.save(SUP_STATS_KEY, all);
-}
+  const { data, error } = await dc
+    .from('supervisor_stats')
+    .select('*')
+    .eq('supervisor_uid', supUID)
+    .single();
 
-function addBlackPoint(supUID, ticketId) {
-  const stat = getSupStat(supUID);
-  if (stat.blackPointTickets.includes(ticketId)) return; // no double-count
-  stat.blackPoints++;
-  stat.blackPointTickets.push(ticketId);
-  saveSupStat(supUID, stat);
-}
-
-function addRating(supUID, rating, ticketId) {
-  const stat = getSupStat(supUID);
-  if (!stat.ratings.find(r => r.ticketId === ticketId)) {
-    stat.ratings.push({ rating, ticketId, at: new Date().toISOString() });
-    saveSupStat(supUID, stat);
+  if (error) {
+    return { supUID, blackPoints: 0, blackPointTickets: [], ratings: [], resolvedOnTime: 0, totalAssigned: 0, totalMissed: 0, totalEscalated: 0 };
   }
+
+  return {
+    supUID: data.supervisor_uid,
+    blackPoints: data.black_points,
+    totalResolved: data.total_resolved,
+    totalAssigned: data.total_assigned,
+    totalMissed: data.total_missed,
+    totalEscalated: data.total_escalated,
+    resolvedOnTime: data.resolved_on_time,
+    avgRating: parseFloat(data.avg_rating || 0),
+    blackPointTickets: data.black_point_tickets || []
+  };
 }
 
-function getAvgRating(supUID) {
-  const stat = getSupStat(supUID);
-  const arr = stat.ratings.map(r => r.rating);
-  if (!arr.length) return null;
-  return (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1);
+async function updateSupStat(supUID, patch) {
+  const dc = getClient();
+  if (!dc) return;
+
+  const dbPatch = {};
+  for (const jsKey in patch) {
+    const dbKey = STATS_DB_MAP[jsKey];
+    if (dbKey) dbPatch[dbKey] = patch[jsKey];
+  }
+
+  const { error } = await dc
+    .from('supervisor_stats')
+    .upsert({ supervisor_uid: supUID, ...dbPatch, updated_at: new Date().toISOString() });
+
+  if (error) console.error('[KAK-STATS] Error updating stats:', error);
+}
+
+async function addBlackPoint(supUID, ticketId) {
+  const stat = await getSupStat(supUID);
+  if (stat.blackPointTickets.includes(ticketId)) return;
+
+  await updateSupStat(supUID, {
+    blackPoints: (stat.blackPoints || 0) + 1,
+    blackPointTickets: [...(stat.blackPointTickets || []), ticketId],
+    totalMissed: (stat.totalMissed || 0) + 1
+  });
+}
+
+async function addRatingToStats(supUID, rating, ticketId) {
+  const complaints = await getComplaintsForSupervisor(supUID);
+  const rated = complaints.filter(c => c.studentRating > 0);
+
+  // Calculate new average
+  const totalRating = rated.reduce((sum, c) => sum + c.studentRating, 0);
+  const newAvg = rated.length > 0 ? (totalRating / rated.length).toFixed(1) : rating;
+
+  await updateSupStat(supUID, {
+    avgRating: parseFloat(newAvg),
+    totalResolved: complaints.filter(c => c.status === 'resolved' || c.status === 'closed').length
+  });
+}
+
+async function recordResolutionStats(supUID, onTime) {
+  const stat = await getSupStat(supUID);
+  const patch = {};
+  if (onTime) patch.resolvedOnTime = (stat.resolvedOnTime || 0) + 1;
+  patch.totalResolved = (stat.totalResolved || 0) + 1;
+  await updateSupStat(supUID, patch);
 }
 
 /** Supervisor ranking: sorted by rating desc, black points asc, missed asc */
 async function getSupervisorRanking() {
-  const supUIDs = ['SUP-36', 'SUP-35', 'SUP-34'];
-  const rankings = [];
+  const dc = getClient();
+  if (!dc) return [];
 
-  for (const uid of supUIDs) {
-    const stat = getSupStat(uid);
-    const user = Object.values(KAK_USERS).find(u => u.uid === uid);
-    const rating = parseFloat(getAvgRating(uid) || 0);
-    const complaints = await getComplaintsForSupervisor(uid);
+  const { data, error } = await dc
+    .from('supervisor_stats')
+    .select('*')
+    .order('avg_rating', { ascending: false });
 
-    const missed = complaints.filter(c => c.status === 'closed_overdue' || c.escalated).length;
-    const resolvedOnTime = complaints.filter(c => c.resolvedOnTime).length;
+  if (error || !data) return [];
 
-    rankings.push({
-      uid,
-      name: user ? user.name : uid,
-      block: user ? user.block : '',
-      blackPoints: stat.blackPoints,
-      resolvedOnTime,
-      totalAssigned: complaints.length,
-      missed,
-      rating,
-      flagged: stat.blackPoints >= 5,
-    });
-  }
-
-  // Sorting Logic: 
-  // 1. Higher Rating first
-  // 2. Lower Black Points if ratings tie
-  // 3. Lower Missed tickets if black points also tie
-  return rankings.sort((a, b) => {
+  return data.map((s, index) => ({
+    uid: s.supervisor_uid,
+    name: KAK_USERS[Object.keys(KAK_USERS).find(k => KAK_USERS[k].uid === s.supervisor_uid)]?.name || s.supervisor_uid,
+    block: s.supervisor_uid.split('-')[1],
+    blackPoints: s.black_points,
+    resolvedOnTime: s.resolved_on_time,
+    totalAssigned: s.total_assigned,
+    missed: s.total_missed,
+    rating: parseFloat(s.avg_rating || 0),
+    flagged: s.black_points >= 5,
+  })).sort((a, b) => {
     if (b.rating !== a.rating) return b.rating - a.rating;
     if (a.blackPoints !== b.blackPoints) return a.blackPoints - b.blackPoints;
     return a.missed - b.missed;

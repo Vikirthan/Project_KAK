@@ -365,7 +365,7 @@
         }
 
         // Save rating to supervisor stats
-        if (c) addRating(c.assignedSupervisor, chosenRating, ratingTicket);
+        if (c) await addRatingToStats(c.assignedSupervisor, chosenRating, ratingTicket);
 
         ratingSubmitBtn.disabled = false;
         ratingSubmitBtn.textContent = 'Submit Rating';
@@ -571,7 +571,7 @@
 
         // 1. Upload photo to Supabase Storage
         let finalPhotoURL = photoDataURL;
-        if (window.kakSupabase) {
+        if (window.supabaseClient) {
             finalPhotoURL = await uploadPhotoToSupabase(photoDataURL, `${ticketId}_issue.jpg`);
             if (!finalPhotoURL) {
                 alert('Photo upload failed. Please try again.');
@@ -609,6 +609,12 @@
         };
 
         // 2. Add to Supabase Table
+        console.log('[KAK-DEBUG] Submitting complaint:', {
+            ticketId,
+            assignedSupervisor: 'SUP-' + blockNum,
+            block: selBlock.value
+        });
+
         await addComplaint(complaint);
 
         submitSpinner.classList.remove('show');
