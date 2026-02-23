@@ -155,11 +155,18 @@
 
     /* ---- Redirect by role ---- */
     function redirectByRole(role, uid) {
+        const user = KAK_USERS[uid];
+        if (user && user.redirectTo) {
+            window.location.href = user.redirectTo + '?uid=' + uid;
+            return;
+        }
+
         const routes = {
             student: 'student/index.html',
             supervisor: 'supervisor/index.html',
             ao: 'ao/index.html',
             vendor: 'vendor/index.html',
+            admin: 'master/index.html'
         };
         const dest = routes[role] || 'student/index.html';
         window.location.href = dest + '?uid=' + uid;

@@ -1,6 +1,7 @@
 /**
  * KAK MASTER ADMIN JS
  * admin.js
+ * Enhanced with specific delete and password-protected wipe
  */
 
 (function () {
@@ -31,7 +32,10 @@
 
     async function loadData() {
         const dc = window.supabaseClient;
-        if (!dc) return;
+        if (!dc) {
+            console.error("Supabase client not found.");
+            return;
+        }
 
         // 1. Fetch Complaints
         const { data: complaints, error: cErr } = await dc
@@ -43,6 +47,8 @@
             allComplaints = complaints;
             renderComplaints(allComplaints);
             updateStats(allComplaints);
+        } else {
+            console.error("Fetch complaints error:", cErr);
         }
 
         // 2. Fetch Supervisors
@@ -50,9 +56,10 @@
             .from('supervisor_stats')
             .select('*');
 
-        if (!sErr) {
+        if (!sErr && sups) {
             renderSupervisors(sups);
-            document.getElementById('total-supervisors').textContent = sups.length;
+            const totalSupEl = document.getElementById('total-supervisors');
+            if (totalSupEl) totalSupEl.textContent = sups.length;
         }
     }
 
@@ -68,12 +75,27 @@
                 <td>${c.assigned_supervisor || '—'}</td>
                 <td>${c.student_rating ? c.student_rating + ' ⭐' : '—'}</td>
                 <td>${new Date(c.submitted_at).toLocaleDateString()}</td>
+                <td><button class="btn-item-delete" data-id="${c.id}" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:18px;" title="Delete Ticket">🗑️</button></td>
             `;
             complaintsBody.appendChild(tr);
+        });
+
+        // Add delete listeners
+        complaintsBody.querySelectorAll('.btn-item-delete').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = e.currentTarget.getAttribute('data-id');
+                if (confirm('Delete this ticket permanently from database?')) {
+                    const dc = window.supabaseClient;
+                    const { error } = await dc.from('complaints').delete().eq('id', id);
+                    if (error) alert('Delete failed: ' + error.message);
+                    else loadData();
+                }
+            });
         });
     }
 
     function renderSupervisors(list) {
+        if (!supervisorsBody) return;
         supervisorsBody.innerHTML = '';
         list.forEach(s => {
             const tr = document.createElement('tr');
@@ -83,14 +105,32 @@
                 <td>${s.total_missed}</td>
                 <td>${s.black_points} ⚫</td>
                 <td>${s.avg_rating ? s.avg_rating + ' ⭐' : '—'}</td>
+                <td><button class="btn-sup-reset" data-uid="${s.supervisor_uid}" style="background:none; border:none; color:#f59e0b; cursor:pointer;" title="Reset Stats">🔄</button></td>
             `;
             supervisorsBody.appendChild(tr);
+        });
+
+        supervisorsBody.querySelectorAll('.btn-sup-reset').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const uid = e.currentTarget.getAttribute('data-uid');
+                if (confirm(`Reset all stats for ${uid}? This will set ratings and points to zero.`)) {
+                    const dc = window.supabaseClient;
+                    await dc.from('supervisor_stats').update({
+                        total_resolved: 0, total_assigned: 0, total_missed: 0,
+                        total_escalated: 0, resolved_on_time: 0, black_points: 0,
+                        avg_rating: 0, black_point_tickets: []
+                    }).eq('supervisor_uid', uid);
+                    loadData();
+                }
+            });
         });
     }
 
     function updateStats(list) {
-        document.getElementById('total-complaints').textContent = list.length;
-        document.getElementById('active-complaints').textContent = list.filter(c => !['resolved', 'closed', 'ao_resolved'].includes(c.status)).length;
+        const tcEl = document.getElementById('total-complaints');
+        const acEl = document.getElementById('active-complaints');
+        if (tcEl) tcEl.textContent = list.length;
+        if (acEl) acEl.textContent = list.filter(c => !['resolved', 'closed', 'ao_resolved'].includes(c.status)).length;
     }
 
     function setupEventListeners() {
@@ -101,7 +141,7 @@
                 c.ticket_id.toLowerCase().includes(term) ||
                 c.block.toString().includes(term) ||
                 c.issue_type.toLowerCase().includes(term) ||
-                c.assigned_supervisor.toLowerCase().includes(term)
+                (c.assigned_supervisor && c.assigned_supervisor.toLowerCase().includes(term))
             );
             renderComplaints(filtered);
         });
@@ -110,7 +150,12 @@
         document.getElementById('btn-refresh').addEventListener('click', loadData);
 
         // Wipe Logic
+        const wipePass = document.getElementById('wipe-password');
+        const wipeErr = document.getElementById('wipe-error');
+
         document.getElementById('btn-wipe').addEventListener('click', () => {
+            if (wipePass) wipePass.value = '';
+            if (wipeErr) wipeErr.style.display = 'none';
             wipeModal.style.display = 'flex';
         });
 
@@ -119,6 +164,11 @@
         });
 
         document.getElementById('confirm-wipe').addEventListener('click', async () => {
+            if (wipePass.value !== 'Viki') {
+                wipeErr.style.display = 'block';
+                return;
+            }
+
             const btn = document.getElementById('confirm-wipe');
             btn.disabled = true;
             btn.textContent = 'WIPING...';
@@ -127,10 +177,10 @@
 
             try {
                 // 1. Delete all complaints
-                const { error: cErr } = await dc.from('complaints').delete().neq('id', 0); // Delete all where ID != 0
+                const { error: cErr } = await dc.from('complaints').delete().neq('id', 0);
                 if (cErr) throw cErr;
 
-                // 2. Reset Statistics
+                // 2. Reset Statistics for all supervisors
                 const { error: sErr } = await dc.from('supervisor_stats').update({
                     total_resolved: 0,
                     total_assigned: 0,
@@ -143,13 +193,13 @@
                 }).neq('id', 0);
                 if (sErr) throw sErr;
 
-                alert('DATABASE WIPED SUCCESSFULLY. SYSTEM IS CLEAN.');
+                alert('NUCLEAR WIPE SUCCESSFUL. DATABASE IS RESET.');
                 window.location.reload();
             } catch (err) {
                 console.error('NUCLEAR WIPE FAILED:', err);
                 alert('WIPE FAILED: ' + err.message);
                 btn.disabled = false;
-                btn.textContent = 'YES, WIPE EVERYTHING';
+                btn.textContent = 'CONFIRM WIPE';
             }
         });
     }

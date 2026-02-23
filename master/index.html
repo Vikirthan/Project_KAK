@@ -74,6 +74,7 @@
                                 <th>Supervisor</th>
                                 <th>Rating</th>
                                 <th>Created</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="complaints-body">
@@ -111,13 +112,18 @@
     <div id="wipe-modal" class="modal-overlay" style="display:none;">
         <div class="modal-box danger-zone">
             <div class="modal-header">
-                <h2>CRITICAL ACTION</h2>
-                <p>This will permanently delete ALL complaints and RESET all supervisor statistics from the Supabase
-                    database. This cannot be undone.</p>
+                <h2>NUCLEAR WIPE</h2>
+                <p>This will permanently delete ALL data. <br>Please enter the Master Password to confirm:</p>
+            </div>
+            <div class="modal-body" style="padding: 20px 24px;">
+                <input type="password" id="wipe-password" placeholder="Enter 'Viki' to confirm"
+                    style="width:100%; padding:12px; background:#0a0a0c; border:1px solid var(--border-admin); color:#fff; border-radius:8px;">
+                <p id="wipe-error" style="color:#ef4444; font-size:12px; margin-top:10px; display:none;">Incorrect
+                    Password!</p>
             </div>
             <div class="modal-footer">
                 <button id="cancel-wipe" class="btn-secondary">Cancel</button>
-                <button id="confirm-wipe" class="btn-danger">YES, WIPE EVERYTHING</button>
+                <button id="confirm-wipe" class="btn-danger">CONFIRM WIPE</button>
             </div>
         </div>
     </div>

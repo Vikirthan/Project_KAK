@@ -26,7 +26,7 @@ const KAK_USERS = {
   'ven': { password: 'Viki', role: 'vendor', name: 'Vendor Manager', uid: 'VEN-001', redirectTo: '../vendor/index.html' },
 
   // ---------- MASTER ADMIN ----------
-  'Vikirthan': { password: 'Viki', role: 'admin', name: 'Master Admin – Vikirthan', uid: 'ADMIN-01', redirectTo: '../master/index.html' },
+  'Vikirthan': { password: 'Viki', role: 'admin', name: 'Master Admin – Vikirthan', uid: 'ADMIN-01', redirectTo: './master/index.html' },
 };
 
 // =============================================
