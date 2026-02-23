@@ -414,7 +414,7 @@
     padding: 5px 14px;
     border-radius: 40px;
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 800;
     font-family: monospace;
     letter-spacing: 1px;
     border: 2px solid;
@@ -496,13 +496,56 @@
 }
 
 .pill-new {
-    background: rgba(59, 130, 246, 0.12);
-    color: #60a5fa;
-    border: 1px solid rgba(59, 130, 246, 0.25);
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
 }
 
 .sup-card.card-new {
-    border-color: rgba(59, 130, 246, 0.35);
+    border-color: rgba(59, 130, 246, 0.45);
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.2), var(--surface-2));
+    position: relative;
+    overflow: hidden;
+}
+
+.sup-card.card-new::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--primary);
+}
+
+.btn-accept {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 20px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #fff !important;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition);
+    width: 100%;
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+}
+
+.btn-accept:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+}
+
+.btn-accept:active {
+    transform: translateY(0);
 }
 
 .pill-overdue {

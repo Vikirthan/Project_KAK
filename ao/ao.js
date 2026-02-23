@@ -147,15 +147,19 @@
           <div class="ao-meta">
             <span>📍 Block ${c.block}</span>
             <span>🎓 ${c.studentName}</span>
-            <span>Resolved: ${c.aoResolvedAt ? formatDateTime(new Date(c.aoResolvedAt)) : '–'}</span>
+            <span>Resolved: ${c.resolvedAt ? formatDateTime(new Date(c.resolvedAt)) : (c.aoResolvedAt ? formatDateTime(new Date(c.aoResolvedAt)) : '–')}</span>
           </div>
+          ${c.studentRating ? `<div class="rating-badge">⭐ Student Rated: ${c.studentRating}/5</div>` : ''}
         </div>
         <div class="ao-card-right">
-          <span class="ao-status-pill pill-resolved">✅ AO Resolved</span>
+          <span class="ao-status-pill pill-resolved">${c.status === 'resolved' ? '✅ Resolved' : '✅ AO Resolved'}</span>
           <span class="ao-ticket">${c.ticketId}</span>
         </div>
       </div>
-      ${c.aoResolutionPhoto ? `<div class="ao-photo-wrap"><img src="${c.aoResolutionPhoto}" alt="AO resolution" /><span>📸 AO resolution photo</span></div>` : ''}
+      <div class="ao-photo-summary" style="display:flex; gap:10px; margin-top:8px;">
+        ${c.photo ? `<div class="ao-photo-wrap" style="flex:1;"><img src="${c.photo}" style="max-height:80px;" alt="Issue" /></div>` : ''}
+        ${c.supervisorPhoto || c.resolutionPhoto ? `<div class="ao-photo-wrap" style="flex:1;"><img src="${c.supervisorPhoto || c.resolutionPhoto}" style="max-height:80px;" alt="Resolution" /></div>` : ''}
+      </div>
     `;
     return div;
   }

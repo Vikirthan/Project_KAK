@@ -41,7 +41,7 @@
     const active = all.filter(c => c.status === 'pending_supervisor');
     const approval = all.filter(c => c.status === 'pending_approval');
     const aoAlerts = all.filter(c => c.status === 'pending_ao' || c.status === 'closed_overdue');
-    const resolved = all.filter(c => c.status === 'resolved' || c.status === 'closed');
+    const resolved = all.filter(c => ['resolved', 'closed', 'pending_ao_review', 'reported_to_ao'].includes(c.status));
 
     /* Stats */
     document.getElementById('stat-total').textContent = all.length;
@@ -117,7 +117,7 @@
         </div>
       </div>
       <div class="card-actions">
-        <button class="btn-accept" data-ticket="${c.ticketId}" style="background: #3b82f6; width: 100%;">⚡ Accept & Start 30m Timer</button>
+        <button class="btn-accept" data-ticket="${c.ticketId}">⚡ Accept & Start 30m Timer</button>
       </div>
     `;
 
@@ -408,35 +408,53 @@
     modalText.textContent = 'Uploading Photo…';
     modalSpinner.style.display = 'inline-block';
 
-    // 1. Upload to Supabase Storage
-    let finalPhotoURL = resolutionPhotoData;
-    if (window.kakSupabase) {
-      finalPhotoURL = await uploadPhotoToSupabase(resolutionPhotoData, `${activeResolveTicket}_resolution.jpg`);
+    try {
+      // 1. Upload to Supabase Storage using the unified client
+      let finalPhotoURL = resolutionPhotoData;
+      if (window.supabaseClient) {
+        console.log('[SUP-DEBUG] Uploading resolution photo for:', activeResolveTicket);
+        finalPhotoURL = await uploadPhotoToSupabase(resolutionPhotoData, `${activeResolveTicket}_resolution.jpg`);
+
+        if (!finalPhotoURL || finalPhotoURL === resolutionPhotoData) {
+          throw new Error("Upload returned invalid URL");
+        }
+      }
+
+      modalText.textContent = 'Saving…';
+
+      const now = new Date();
+      const all = await getComplaints();
+      const c = all.find(x => x.ticketId === activeResolveTicket);
+      const onTime = c && msUntil(c.supervisorDeadline) > 0;
+
+      await updateComplaint(activeResolveTicket, {
+        status: 'pending_approval',
+        resolvedAt: now.toISOString(),
+        resolutionPhoto: finalPhotoURL,
+        resolvedOnTime: onTime,
+        timeline: [...(c.timeline || []), {
+          event: 'Supervisor Marked Resolved — Pending student review',
+          time: now.toISOString(), by: session.uid
+        }]
+      });
+
+      // Update live stats in MATRIX
+      await recordResolutionStats(session.uid, onTime);
+
+      modal.style.display = 'none';
+      await render();
+    } catch (err) {
+      console.error('[SUP-ERROR] Resolution failed:', err);
+      modalText.textContent = '❌ Upload Failed';
+      modalSpinner.style.display = 'none';
+
+      alert('Photo update failed. This could be due to a database connection timeout. Please wait 5 seconds and try again.');
+
+      setTimeout(() => {
+        modalConfirm.disabled = false;
+        modalText.textContent = '✅ Confirm Resolved';
+      }, 5000);
     }
-
-    modalText.textContent = 'Saving…';
-
-    const now = new Date();
-    const all = await getComplaints();
-    const c = all.find(x => x.ticketId === activeResolveTicket);
-    const onTime = c && msUntil(c.supervisorDeadline) > 0;
-
-    await updateComplaint(activeResolveTicket, {
-      status: 'pending_approval',
-      resolvedAt: now.toISOString(),
-      resolutionPhoto: finalPhotoURL,
-      resolvedOnTime: onTime,
-      timeline: [...(c.timeline || []), {
-        event: 'Supervisor Marked Resolved — Pending student review',
-        time: now.toISOString(), by: session.uid
-      }]
-    });
-
-    // Update live stats in MATRIX
-    await recordResolutionStats(session.uid, onTime);
-
-    modal.style.display = 'none';
-    await render();
   });
 
 

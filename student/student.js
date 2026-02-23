@@ -54,7 +54,7 @@
                 clearInterval(studentTimerMap[ticketId]);
                 return;
             }
-            el.textContent = '⏱️ ' + formatCountdown(ms) + ' remaining';
+            el.textContent = '⏱️ ' + formatCountdown(ms);
             el.style.color = ms < 5 * 60 * 1000 ? '#ef4444' : (ms < 15 * 60 * 1000 ? '#f59e0b' : '#3b82f6');
         }
 
@@ -268,7 +268,7 @@
             const ms = msUntil(deadline);
             const timeStr = formatCountdown(ms);
             const color = ms < 5 * 60 * 1000 ? '#ef4444' : (ms < 15 * 60 * 1000 ? '#f59e0b' : '#3b82f6');
-            timerHtml = `<div class="complaint-timer" id="timer-${c.ticketId}" style="color: ${color}; font-weight: 800; font-family: monospace; font-size: 13px; margin-top: 6px;">⏱️ ${timeStr} remaining</div>`;
+            timerHtml = `<div class="complaint-bold-timer" id="timer-${c.ticketId}" style="color: ${color};">⏱️ ${timeStr}</div>`;
 
             // Start the live runner after a tiny delay to ensure card is in DOM
             setTimeout(() => startStudentLiveTimer(c.ticketId, deadline), 50);
@@ -278,12 +278,14 @@
           <div class="complaint-card-icon">${icon}</div>
           <div class="complaint-card-body">
             <div class="complaint-card-top">
-              <span class="complaint-block-label">${block}</span>
-              <span class="status-badge ${meta.cls}">${meta.label}</span>
+              <div class="complaint-card-header">
+                <span class="complaint-block-label">${block}</span>
+                <span class="status-badge ${meta.cls}">${meta.label}</span>
+              </div>
+              ${timerHtml}
             </div>
             <div class="complaint-issue">${c.issueType}${c.description ? ` · ${c.description.slice(0, 60)}${c.description.length > 60 ? '…' : ''}` : ''}</div>
             <div class="complaint-meta">Submitted: ${date} <span class="complaint-ticket-id">${c.ticketId}</span></div>
-            ${timerHtml}
             ${approveSection}
             ${ratingSection}
           </div>
@@ -347,18 +349,13 @@
                 }]
             });
         } else {
-            // NORMAL RESOLUTION: Delete photos and close
-            if (c?.photo) await deletePhotoFromSupabase(c.photo);
-            if (c?.supervisorPhoto) await deletePhotoFromSupabase(c.supervisorPhoto);
-
+            // NORMAL RESOLUTION: Keep record and photo for history
             await updateComplaint(ratingTicket, {
                 status: 'resolved',
                 studentRating: chosenRating,
                 studentApproved: true,
-                photo: null,
-                supervisorPhoto: null,
                 timeline: [...(c?.timeline || []), {
-                    event: 'Privacy Policy: Photos deleted from server. Rated ' + chosenRating + '/5',
+                    event: 'Resolution Approved by Student. Rated ' + chosenRating + '/5',
                     time: new Date().toISOString(), by: session.uid
                 }]
             });
