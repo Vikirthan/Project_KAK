@@ -8,25 +8,25 @@
 // =============================================
 const KAK_USERS = {
   // ---------- STUDENTS ----------
-  '123': { password: 'Viki', role: 'student', name: 'Vikirthan T', uid: '123', redirectTo: '../student/index.html' },
-  '456': { password: 'Viki', role: 'student', name: 'Arun Kumar S', uid: '456', redirectTo: '../student/index.html' },
-  '789': { password: 'Viki', role: 'student', name: 'Priya Sharma', uid: '789', redirectTo: '../student/index.html' },
+  '123': { password: 'Viki', role: 'student', name: 'Vikirthan T', uid: '123', redirectTo: 'student/index.html' },
+  '456': { password: 'Viki', role: 'student', name: 'Arun Kumar S', uid: '456', redirectTo: 'student/index.html' },
+  '789': { password: 'Viki', role: 'student', name: 'Priya Sharma', uid: '789', redirectTo: 'student/index.html' },
 
   // ---------- SUPERVISORS ----------
-  'sup': { password: 'Viki', role: 'supervisor', name: 'Supervisor – Block 36', block: '36', uid: 'SUP-36', redirectTo: '../supervisor/index.html' },
-  'sup2': { password: 'Viki', role: 'supervisor', name: 'Supervisor – Block 35', block: '35', uid: 'SUP-35', redirectTo: '../supervisor/index.html' },
-  'sup3': { password: 'Viki', role: 'supervisor', name: 'Supervisor – Block 34', block: '34', uid: 'SUP-34', redirectTo: '../supervisor/index.html' },
+  'sup': { password: 'Viki', role: 'supervisor', name: 'Supervisor – Block 36', block: '36', uid: 'SUP-36', redirectTo: 'supervisor/index.html' },
+  'sup2': { password: 'Viki', role: 'supervisor', name: 'Supervisor – Block 35', block: '35', uid: 'SUP-35', redirectTo: 'supervisor/index.html' },
+  'sup3': { password: 'Viki', role: 'supervisor', name: 'Supervisor – Block 34', block: '34', uid: 'SUP-34', redirectTo: 'supervisor/index.html' },
 
   // ---------- AO OFFICE ----------
-  'ao': { password: 'Viki', role: 'ao', name: 'AO Office – Block 36', block: '36', uid: 'AO-36', redirectTo: '../ao/index.html' },
-  'ao35': { password: 'Viki', role: 'ao', name: 'AO Office – Block 35', block: '35', uid: 'AO-35', redirectTo: '../ao/index.html' },
-  'ao34': { password: 'Viki', role: 'ao', name: 'AO Office – Block 34', block: '34', uid: 'AO-34', redirectTo: '../ao/index.html' },
+  'ao': { password: 'Viki', role: 'ao', name: 'AO Office – Block 36', block: '36', uid: 'AO-36', redirectTo: 'ao/index.html' },
+  'ao35': { password: 'Viki', role: 'ao', name: 'AO Office – Block 35', block: '35', uid: 'AO-35', redirectTo: 'ao/index.html' },
+  'ao34': { password: 'Viki', role: 'ao', name: 'AO Office – Block 34', block: '34', uid: 'AO-34', redirectTo: 'ao/index.html' },
 
   // ---------- VENDOR ----------
-  'ven': { password: 'Viki', role: 'vendor', name: 'Vendor Manager', uid: 'VEN-001', redirectTo: '../vendor/index.html' },
+  'ven': { password: 'Viki', role: 'vendor', name: 'Vendor Manager', uid: 'VEN-001', redirectTo: 'vendor/index.html' },
 
   // ---------- MASTER ADMIN ----------
-  'Vikirthan': { password: 'Viki', role: 'admin', name: 'Master Admin – Vikirthan', uid: 'ADMIN-01', redirectTo: './master/index.html' },
+  'Vikirthan': { password: 'Viki', role: 'admin', name: 'Master Admin – Vikirthan', uid: 'ADMIN-01', redirectTo: 'master/index.html' },
 };
 
 // =============================================
@@ -44,6 +44,7 @@ const ROLE_META = {
   supervisor: { label: 'Supervisor', icon: '🔧', color: '#06b6d4' },
   ao: { label: 'AO Office', icon: '🏢', color: '#f59e0b' },
   vendor: { label: 'Vendor Manager', icon: '👔', color: '#8b5cf6' },
+  admin: { label: 'Master Admin', icon: '👑', color: '#ef4444' }
 };
 
 // =============================================
@@ -74,12 +75,12 @@ function kakSetSession(user) {
 
 /** Get session for a specific role or UID */
 function kakGetSession(target) {
-  // 1. Try to get UID from URL parameter first (e.g. index.html?uid=SUP-36)
+  // 1. Try to get UID from URL parameter first
   const params = new URLSearchParams(window.location.search);
   const urlUID = params.get('uid');
   if (urlUID) {
     const s = KAK.get('session_' + urlUID);
-    if (s) return s;
+    if (s && (!target || s.role === target || s.uid === target)) return s;
   }
 
   // 2. Try most recent login

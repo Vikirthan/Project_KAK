@@ -150,14 +150,14 @@
         await new Promise(r => setTimeout(r, 400));
 
         // Redirect to correct portal
-        redirectByRole(user.role, user.uid);
+        redirectByRole(user.role, uid);
     });
 
     /* ---- Redirect by role ---- */
-    function redirectByRole(role, uid) {
-        const user = KAK_USERS[uid];
+    function redirectByRole(role, loginId) {
+        const user = KAK_USERS[loginId];
         if (user && user.redirectTo) {
-            window.location.href = user.redirectTo + '?uid=' + uid;
+            window.location.href = user.redirectTo + '?uid=' + user.uid;
             return;
         }
 

@@ -176,11 +176,11 @@
             const dc = window.supabaseClient;
 
             try {
-                // 1. Delete all complaints
-                const { error: cErr } = await dc.from('complaints').delete().neq('id', 0);
+                // 1. Delete all complaints - Filter on a string field to avoid UUID type errors
+                const { error: cErr } = await dc.from('complaints').delete().neq('ticket_id', '_none_');
                 if (cErr) throw cErr;
 
-                // 2. Reset Statistics for all supervisors
+                // 2. Reset Statistics for all supervisors - Filter on supervisor_uid string
                 const { error: sErr } = await dc.from('supervisor_stats').update({
                     total_resolved: 0,
                     total_assigned: 0,
@@ -190,7 +190,7 @@
                     black_points: 0,
                     avg_rating: 0,
                     black_point_tickets: []
-                }).neq('id', 0);
+                }).neq('supervisor_uid', '_none_');
                 if (sErr) throw sErr;
 
                 alert('NUCLEAR WIPE SUCCESSFUL. DATABASE IS RESET.');
