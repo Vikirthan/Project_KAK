@@ -45,6 +45,14 @@ body {
   -webkit-font-smoothing: antialiased;
   padding-left: 280px;
   /* Space for the fixed ranking sidebar */
+  user-select: none;
+  /* Make it feel like an app */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Safe area for mobile notch/home bar */
+.app-container {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 @media (max-width: 1200px) {
@@ -1077,4 +1085,58 @@ textarea {
   .stat-item {
     padding: 0;
   }
+}
+
+/* =========================================
+   MOBILE APP BOTTOM NAVIGATION
+   ========================================= */
+.mobile-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: rgba(15, 15, 26, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  z-index: 1000;
+  padding-bottom: env(safe-area-inset-bottom);
+  justify-content: space-around;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .mobile-nav {
+    display: flex;
+  }
+
+  /* Ensure content doesn't get hidden behind bottom nav */
+  .dashboard-container,
+  .form-container,
+  .student-view,
+  .ao-container {
+    padding-bottom: 90px !important;
+  }
+}
+
+.m-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 600;
+  transition: all var(--transition);
+}
+
+.m-nav-item.active {
+  color: var(--primary);
+}
+
+.m-nav-icon {
+  font-size: 20px;
 }

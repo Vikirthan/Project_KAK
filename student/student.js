@@ -145,13 +145,28 @@
         input.addEventListener('paste', e => e.preventDefault());
     }
 
+    // ── Mobile Bottom Nav Handling ──
+    const mNavHome = document.getElementById('m-nav-home');
+    const mNavNew = document.getElementById('m-nav-new');
+    const mNavProfile = document.getElementById('m-nav-profile');
+
+    function updateMNav(activeId) {
+        [mNavHome, mNavNew, mNavProfile].forEach(el => {
+            if (el) el.classList.toggle('active', el.id === activeId);
+        });
+    }
+
+    if (mNavHome) mNavHome.addEventListener('click', (e) => { e.preventDefault(); showDashboard(); updateMNav('m-nav-home'); });
+    if (mNavNew) mNavNew.addEventListener('click', (e) => { e.preventDefault(); showForm(); updateMNav('m-nav-new'); });
+    if (mNavProfile) mNavProfile.addEventListener('click', (e) => { e.preventDefault(); alert('Profile section coming soon!'); });
+
     // Buttons that open the form
-    document.getElementById('btn-open-form').addEventListener('click', showForm);
+    document.getElementById('btn-open-form').addEventListener('click', () => { showForm(); updateMNav('m-nav-new'); });
     const btn2 = document.getElementById('btn-open-form-2');
-    if (btn2) btn2.addEventListener('click', showForm);
+    if (btn2) btn2.addEventListener('click', () => { showForm(); updateMNav('m-nav-new'); });
 
     // Back button inside form → go to dashboard
-    document.getElementById('btn-back-to-dash').addEventListener('click', showDashboard);
+    document.getElementById('btn-back-to-dash').addEventListener('click', () => { showDashboard(); updateMNav('m-nav-home'); });
 
     // Expose to window for success-screen buttons
     window.goToDashboard = showDashboard;

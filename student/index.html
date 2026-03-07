@@ -10,8 +10,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet" />
+    <meta name="theme-color" content="#0f0f1a" />
+    <link rel="manifest" href="../manifest.json" />
+    <link rel="apple-touch-icon" href="../icon-192.png" />
     <link rel="stylesheet" href="../css/style.css" />
     <link rel="stylesheet" href="student.css" />
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('../sw.js').catch(err => console.log('Student SW error:', err));
+            });
+        }
+    </script>
 </head>
 
 <body class="form-page">
@@ -464,6 +474,22 @@
             </div>
         </div>
     </div>
+
+    <!-- Mobile App Navigation (Bottom Bar) -->
+    <nav class="mobile-nav">
+        <a href="#" class="m-nav-item active" id="m-nav-home">
+            <span class="m-nav-icon">🏠</span>
+            <span>Home</span>
+        </a>
+        <a href="#" class="m-nav-item" id="m-nav-new">
+            <span class="m-nav-icon">➕</span>
+            <span>New</span>
+        </a>
+        <a href="#" class="m-nav-item" id="m-nav-profile">
+            <span class="m-nav-icon">👤</span>
+            <span>Profile</span>
+        </a>
+    </nav>
 
     <!-- Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

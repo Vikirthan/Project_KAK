@@ -6,6 +6,10 @@
 .login-page {
     overflow: hidden;
     height: 100vh;
+    padding: 0 !important;
+    /* Reset global body padding for login */
+    margin: 0 !important;
+    background: var(--surface);
 }
 
 .login-layout {
@@ -17,14 +21,38 @@
 
 /* ---- LEFT BRANDING PANEL ---- */
 .login-brand-panel {
-    flex: 1;
-    background: linear-gradient(145deg, rgba(99, 102, 241, 0.25) 0%, rgba(139, 92, 246, 0.18) 50%, rgba(6, 182, 212, 0.12) 100%);
-    border-right: 1px solid var(--border);
+    flex: 1.2;
+    /* Brand takes a bit more space for impact */
+    background: radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 80%),
+        #0a0a14;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 48px 40px;
+    padding: 60px;
     overflow-y: auto;
+    position: relative;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+}
+
+.login-brand-panel::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari */
+}
+
+.login-brand-panel::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.03) 1px, transparent 0);
+    background-size: 32px 32px;
+    pointer-events: none;
 }
 
 @media (max-width: 860px) {
@@ -34,7 +62,14 @@
 }
 
 .brand-inner {
-    max-width: 420px;
+    max-width: 480px;
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 32px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 .brand-logo {
@@ -79,11 +114,12 @@
 }
 
 .brand-headline {
-    font-size: 38px;
+    font-size: clamp(32px, 4vw, 46px);
     font-weight: 800;
-    line-height: 1.2;
-    margin-bottom: 18px;
+    line-height: 1.1;
+    margin-bottom: 24px;
     color: var(--text-primary);
+    letter-spacing: -1.5px;
 }
 
 .brand-highlight {
@@ -100,45 +136,84 @@
     margin-bottom: 40px;
 }
 
+.brand-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.pulse-dot {
+    width: 6px;
+    height: 6px;
+    background: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: loginPulse 2s infinite;
+}
+
+@keyframes loginPulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
 .brand-features {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    gap: 24px;
     margin-bottom: 40px;
 }
 
 .brand-features li {
     display: flex;
-    align-items: flex-start;
-    gap: 14px;
+    align-items: center;
+    gap: 16px;
 }
 
 .feat-icon {
-    font-size: 22px;
     width: 44px;
     height: 44px;
     min-width: 44px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.feat-icon svg {
+    filter: drop-shadow(0 0 4px rgba(99, 102, 241, 0.4));
 }
 
 .brand-features li div strong {
     display: block;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 2px;
+    letter-spacing: -0.2px;
 }
 
 .brand-features li div p {
-    font-size: 12px;
-    color: var(--text-muted);
-    line-height: 1.5;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
     margin: 0;
 }
 
@@ -164,7 +239,16 @@
     justify-content: center;
     padding: 32px 24px;
     overflow-y: auto;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
     background: var(--surface);
+}
+
+.login-form-panel::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari */
 }
 
 @media (max-width: 860px) {
