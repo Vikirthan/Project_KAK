@@ -85,7 +85,7 @@
             </div>
             <div class="stat-chip stat-review">
                 <span class="stat-val" id="stat-review">0</span>
-                <span class="stat-label">Quality Reviews (<4⭐)< /span>
+                <span class="stat-label">Quality Reviews (&lt;3⭐)</span>
             </div>
         </section>
 
@@ -176,6 +176,59 @@
         </section>
 
     </main>
+
+    <!-- ── AO REVIEW ACTION MODAL (For Forward/Clear with Description) ── -->
+    <div class="ao-modal-overlay" id="ao-review-modal" style="display:none">
+        <div class="ao-modal-box">
+            <div class="ao-modal-header">
+                <h3 id="ao-review-title">Review Action</h3>
+                <span class="modal-ticket-lbl" id="ao-review-ticket-label"></span>
+            </div>
+            <div class="ao-review-body">
+                <p id="ao-review-note-desc" class="ao-modal-note">Please provide a description for this action.</p>
+
+                <!-- Single box for Forwarding -->
+                <div id="ao-forward-box" style="display:none">
+                    <label
+                        style="display:block; text-align:left; font-size:12px; margin-bottom:5px; color:var(--text-muted); font-weight:600;">Description
+                        for Vendor:</label>
+                    <textarea id="ao-review-desc-vendor" class="ao-textarea"
+                        placeholder="Explain internal dispute details for vendor..." rows="4"
+                        style="width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: inherit; margin-bottom: 5px; resize: none; background: rgba(0,0,0,0.2); color: #fff;"></textarea>
+                </div>
+
+                <!-- Double box for Clearing -->
+                <div id="ao-clear-box" style="display:none">
+                    <div style="margin-bottom: 15px;">
+                        <label
+                            style="display:block; text-align:left; font-size:12px; margin-bottom:5px; color:var(--text-muted); font-weight:600;">Internal
+                            Note for Vendor (Required):</label>
+                        <textarea id="ao-clear-desc-vendor" class="ao-textarea"
+                            placeholder="Explain to vendor why this is being cleared..." rows="3"
+                            style="width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: inherit; resize: none; background: rgba(0,0,0,0.2); color: #fff;"></textarea>
+                    </div>
+                    <div style="margin-bottom: 5px;">
+                        <label
+                            style="display:block; text-align:left; font-size:12px; margin-bottom:5px; color:var(--text-muted); font-weight:600;">Message
+                            for Student (Required):</label>
+                        <textarea id="ao-clear-desc-student" class="ao-textarea"
+                            placeholder="Explain to student why this is resolved/cleared..." rows="3"
+                            style="width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: inherit; resize: none; background: rgba(0,0,0,0.2); color: #fff;"></textarea>
+                    </div>
+                </div>
+
+                <p class="ao-photo-err" id="ao-review-err" style="display:none; margin-top:10px; color: #fca5a5;">⚠️
+                    Please fill in all required descriptions.</p>
+            </div>
+            <div class="ao-modal-actions">
+                <button class="btn-ao-cancel" id="ao-review-cancel">Cancel</button>
+                <button class="btn-ao-confirm" id="ao-review-confirm">
+                    <span id="ao-review-confirm-text">Confirm</span>
+                    <div class="btn-spinner" id="ao-review-spinner" style="display:none"></div>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- ── RESOLVE MODAL ── -->
     <div class="ao-modal-overlay" id="ao-resolve-modal" style="display:none">

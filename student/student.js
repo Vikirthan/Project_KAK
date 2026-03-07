@@ -172,22 +172,32 @@
     }
 
     async function renderDashboard() {
-        const mine = await getMyComplaints();
+        const allStats = await getComplaints();
+        const mine = allStats.filter(c => c.studentUID === session.uid);
+
+        // ── Global System Stats (For transparency) ──
+        const gTotal = allStats.length;
+        const gResolved = allStats.filter(c => c.status === 'resolved' || c.status === 'closed' || c.status === 'ao_resolved').length;
+        document.getElementById('global-total').textContent = gTotal;
+        document.getElementById('global-resolved').textContent = gResolved;
 
         // ── AUTO-POP: if any complaint awaits rating, prompt immediately ──
         const needsRating = mine.find(c => c.status === 'pending_approval');
-        if (needsRating) {
+        const modal = document.getElementById('rating-modal');
+        if (needsRating && modal && modal.style.display !== 'flex') {
             // Show toast right away
             showRatingGateToast();
             // Open the rating modal after a short delay so the user sees the dashboard first
-            setTimeout(() => openRatingModal(needsRating.ticketId), 1200);
+            setTimeout(() => {
+                if (modal.style.display !== 'flex') openRatingModal(needsRating.ticketId);
+            }, 1200);
         }
 
-        // ---- Stats ----
+        // ---- My Stats ----
         const total = mine.length;
-        const resolved = mine.filter(c => c.status === 'resolved' || c.status === 'closed').length;
-        const missed = mine.filter(c => c.status === 'pending_ao' || c.status === 'closed_overdue').length;
-        const pending = mine.filter(c => ['pending_supervisor', 'pending_approval'].includes(c.status)).length;
+        const resolved = mine.filter(c => c.status === 'resolved' || c.status === 'closed' || c.status === 'ao_resolved').length;
+        const missed = mine.filter(c => c.status === 'pending_ao' || c.status === 'closed_overdue' || c.status === 'escalated_to_vendor').length;
+        const pending = mine.filter(c => ['pending_acceptance', 'pending_supervisor', 'pending_approval', 'pending_ao_review'].includes(c.status)).length;
 
         document.getElementById('stat-total').textContent = total;
         document.getElementById('stat-resolved').textContent = resolved;
@@ -229,6 +239,7 @@
         escalated_to_vendor: { label: '👮 Escalated to Vendor', cls: 'status-pending_ao' },
         closed_overdue: { label: '⚫ Closed – Overdue', cls: 'status-pending_ao' },
         resolved: { label: '✅ Resolved', cls: 'status-resolved' },
+        ao_resolved: { label: '✅ Handled by AO', cls: 'status-resolved' },
         closed: { label: '✔ Closed', cls: 'status-closed' },
     };
 
@@ -259,8 +270,31 @@
             </div>
           </div>` : '';
 
+        const studentFeedback = (c.timeline || []).find(t => t.event.includes('Rated ' + c.studentRating + '/5'))?.note;
         const ratingSection = c.studentRating ? `
-          <div class="rating-given">⭐ You rated: ${'⭐'.repeat(c.studentRating)} (${c.studentRating}/5)</div>` : '';
+          <div class="rating-given-wrap" style="margin-top: 10px; padding: 12px; background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.15); border-radius: 10px; border-left: 4px solid #f59e0b;">
+            <div class="rating-stars" style="font-weight: 700; color: #fcd34d; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+              <span>Your Rating:</span>
+              <span>${'⭐'.repeat(c.studentRating)}</span>
+              <span style="font-weight: 500; font-size: 12px; color: #94a3b8; margin-left: 4px;">(${c.studentRating}/5)</span>
+            </div>
+            ${studentFeedback ? `<div class="rating-comment" style="color: #cbd5e1; font-style: italic; margin-top: 8px; font-size: 13px; line-height: 1.5;">"${studentFeedback}"</div>` : ''}
+          </div>` : '';
+
+        // AO Review Note display
+        const isActuallyResolved = ['resolved', 'closed', 'ao_resolved'].includes(c.status);
+        const aoTimelineObj = (c.timeline || []).findLast(t => t.note && (t.event.includes('AO Cleared') || t.event.includes('AO Reported to Vendor')));
+
+        const noteTitle = aoTimelineObj?.event.includes('Reported to Vendor') ? '👮 Report Note:' : '🏢 AO Resolution Note:';
+        const noteStyles = isActuallyResolved
+            ? { bg: '#eff6ff', border: '#60a5fa', text: '#1e40af' } // Blue/Positive for Resolve
+            : { bg: '#fef2f2', border: '#ef4444', text: '#b91c1c' }; // Red/Warning for Escalated
+
+        const aoNoteSection = aoTimelineObj ? `
+          <div class="ao-note-wrap" style="margin-top: 10px; padding: 10px; background: ${noteStyles.bg}; border-radius: 8px; border-left: 4px solid ${noteStyles.border};">
+            <div class="ao-note-header" style="font-weight: 700; color: ${noteStyles.text};">${noteTitle}</div>
+            <div class="ao-note-text" style="color: #475569; margin-top: 3px;">${aoTimelineObj.note}</div>
+          </div>` : '';
 
         let timerHtml = '';
         const deadline = c.acceptanceDeadline || c.supervisorDeadline || c.aoDeadline;
@@ -288,6 +322,7 @@
             <div class="complaint-meta">Submitted: ${date} <span class="complaint-ticket-id">${c.ticketId}</span></div>
             ${approveSection}
             ${ratingSection}
+            ${aoNoteSection}
           </div>
         `;
 
@@ -307,6 +342,8 @@
     function openRatingModal(ticketId) {
         ratingTicket = ticketId;
         chosenRating = 0;
+        const commentField = document.getElementById('rating-comment');
+        if (commentField) commentField.value = ''; // Reset comment
         renderStars(0);
         document.getElementById('rating-modal').style.display = 'flex';
     }
@@ -317,10 +354,24 @@
         });
     }
 
-    document.querySelectorAll('.star-btn').forEach((btn, i) => {
-        btn.addEventListener('mouseover', () => renderStars(i + 1));
-        btn.addEventListener('mouseout', () => renderStars(chosenRating));
-        btn.addEventListener('click', () => { chosenRating = i + 1; renderStars(chosenRating); });
+    document.querySelectorAll('.star-btn').forEach((btn) => {
+        const starVal = parseInt(btn.getAttribute('data-star'));
+
+        btn.addEventListener('mouseover', () => {
+            renderStars(starVal);
+        });
+
+        btn.addEventListener('mouseout', () => {
+            renderStars(chosenRating);
+        });
+
+        btn.addEventListener('click', () => {
+            chosenRating = starVal;
+            renderStars(chosenRating);
+            // Visual feedback that it's locked
+            btn.style.transform = 'scale(1.4)';
+            setTimeout(() => btn.style.transform = '', 200);
+        });
     });
 
     document.getElementById('rating-cancel')?.addEventListener('click', () => {
@@ -328,6 +379,7 @@
     });
     const ratingSubmitBtn = document.getElementById('rating-submit');
     ratingSubmitBtn?.addEventListener('click', async () => {
+        const comment = document.getElementById('rating-comment').value.trim();
         if (!chosenRating) { document.getElementById('rating-err').style.display = 'block'; return; }
         document.getElementById('rating-err').style.display = 'none';
 
@@ -337,7 +389,7 @@
         const all = await getComplaints();
         const c = all.find(x => x.ticketId === ratingTicket);
 
-        if (chosenRating < 4) {
+        if (chosenRating < 3) {
             // LOW RATING LOGIC: Forward to AO for review
             await updateComplaint(ratingTicket, {
                 status: 'pending_ao_review',
@@ -345,6 +397,7 @@
                 studentApproved: true,
                 timeline: [...(c?.timeline || []), {
                     event: 'Low Rating Review: Forwarded to AO Office (Rated ' + chosenRating + '/5)',
+                    note: comment,
                     time: new Date().toISOString(), by: session.uid
                 }]
             });
@@ -356,6 +409,7 @@
                 studentApproved: true,
                 timeline: [...(c?.timeline || []), {
                     event: 'Resolution Approved by Student. Rated ' + chosenRating + '/5',
+                    note: comment,
                     time: new Date().toISOString(), by: session.uid
                 }]
             });
@@ -758,5 +812,9 @@
             html5QrCode = null;
         }
     }
+
+    /* ── Initial render + Auto-refresh (3s) ── */
+    renderDashboard();
+    setInterval(renderDashboard, 3000);
 
 })();

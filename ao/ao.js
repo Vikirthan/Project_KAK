@@ -30,7 +30,7 @@
 
     // ── Filter by AO's assigned block ──
     if (session.block) {
-      all = all.filter(c => c.block === session.block);
+      all = all.filter(c => c.block && c.block.split('-')[0] === session.block);
       renderSupervisorSummary(session.block);
     }
 
@@ -140,6 +140,12 @@
   function renderResolvedCard(c) {
     const div = document.createElement('div');
     div.className = 'ao-card ao-card-resolved';
+
+    // Find notes from timeline
+    const aoTimeline = (c.timeline || []).findLast(t => t.event.includes('AO Cleared Review'));
+    const vendorNote = aoTimeline?.vendorNote;
+    const studentNote = aoTimeline?.note;
+
     div.innerHTML = `
       <div class="ao-card-top">
         <div class="ao-card-left">
@@ -156,9 +162,28 @@
           <span class="ao-ticket">${c.ticketId}</span>
         </div>
       </div>
-      <div class="ao-photo-summary" style="display:flex; gap:10px; margin-top:8px;">
-        ${c.photo ? `<div class="ao-photo-wrap" style="flex:1;"><img src="${c.photo}" style="max-height:80px;" alt="Issue" /></div>` : ''}
-        ${c.supervisorPhoto || c.resolutionPhoto ? `<div class="ao-photo-wrap" style="flex:1;"><img src="${c.supervisorPhoto || c.resolutionPhoto}" style="max-height:80px;" alt="Resolution" /></div>` : ''}
+
+      <!-- Descriptions for Student/Supervisor (Vendor) -->
+      ${vendorNote || studentNote ? `
+        <div class="ao-notes-box" style="margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; border-top: 1px dashed var(--border); padding-top: 12px;">
+          ${vendorNote ? `
+            <div class="note-item">
+              <div style="font-size: 11px; font-weight: 700; color: #818cf8; text-transform: uppercase; letter-spacing: 0.5px;">👮 Note for Supervisor/Vendor:</div>
+              <div style="font-size: 13px; color: #cbd5e1; margin-top: 5px; line-height: 1.5; background: rgba(129, 140, 248, 0.08); padding: 10px; border-radius: 8px; border-left: 3px solid #6366f1;">"${vendorNote}"</div>
+            </div>
+          ` : ''}
+          ${studentNote ? `
+            <div class="note-item">
+              <div style="font-size: 11px; font-weight: 700; color: #fbbf24; text-transform: uppercase; letter-spacing: 0.5px;">🎓 Note for Student:</div>
+              <div style="font-size: 13px; color: #cbd5e1; margin-top: 5px; line-height: 1.5; background: rgba(251, 191, 36, 0.08); padding: 10px; border-radius: 8px; border-left: 3px solid #fbbf24;">"${studentNote}"</div>
+            </div>
+          ` : ''}
+        </div>
+      ` : ''}
+
+      <div class="ao-photo-summary" style="display:flex; gap:10px; margin-top:12px;">
+        ${c.photo ? `<div class="ao-photo-wrap" style="flex:1;"><img src="${c.photo}" style="max-height:80px; width: 100%; object-fit: cover; border-radius: 6px;" alt="Issue" /></div>` : ''}
+        ${c.supervisorPhoto || c.resolutionPhoto ? `<div class="ao-photo-wrap" style="flex:1;"><img src="${c.supervisorPhoto || c.resolutionPhoto}" style="max-height:80px; width: 100%; object-fit: cover; border-radius: 6px;" alt="Resolution" /></div>` : ''}
       </div>
     `;
     return div;
@@ -191,7 +216,7 @@
   }
 
   /* ─────────────────────────────────────────────
-     QUALITY REVIEW CARD (< 4 STARS)
+     QUALITY REVIEW CARD (< 3 STARS)
   ───────────────────────────────────────────── */
   function renderReviewCard(c) {
     const div = document.createElement('div');
@@ -238,8 +263,8 @@
       </div>
     `;
 
-    div.querySelector('.btn-clear').addEventListener('click', () => clearComplaint(c));
-    div.querySelector('.btn-report-vendor').addEventListener('click', () => escalateToVendor(c));
+    div.querySelector('.btn-clear').addEventListener('click', () => openReviewActionModal(c, 'clear'));
+    div.querySelector('.btn-report-vendor').addEventListener('click', () => openReviewActionModal(c, 'forward'));
     if (!isReported) {
       div.querySelector('.btn-report').addEventListener('click', () => reportSupervisor(c));
     }
@@ -259,12 +284,89 @@
     render();
   }
 
-  async function escalateToVendor(c) {
-    if (!confirm('Report this to the Vendor? Photos will be kept for their final review.')) return;
+  /* ─────────────────────────────────────────────
+     AO REVIEW ACTION MODAL (FOR CLEAR/FORWARD)
+  ───────────────────────────────────────────── */
+  let activeReviewComplaint = null;
+  let activeReviewType = null; // 'clear' or 'forward'
+
+  function openReviewActionModal(c, type) {
+    activeReviewComplaint = c;
+    activeReviewType = type;
+    const modal = document.getElementById('ao-review-modal');
+    const title = document.getElementById('ao-review-title');
+    const note = document.getElementById('ao-review-note-desc');
+    const ticketLbl = document.getElementById('ao-review-ticket-label');
+    const btnText = document.getElementById('ao-review-confirm-text');
+    const err = document.getElementById('ao-review-err');
+
+    const forwardBox = document.getElementById('ao-forward-box');
+    const clearBox = document.getElementById('ao-clear-box');
+
+    // Reset fields
+    document.getElementById('ao-review-desc-vendor').value = '';
+    document.getElementById('ao-clear-desc-vendor').value = '';
+    document.getElementById('ao-clear-desc-student').value = '';
+    ticketLbl.textContent = 'Ticket: ' + c.ticketId;
+    err.style.display = 'none';
+
+    if (type === 'forward') {
+      title.textContent = 'Report to Vendor Manager';
+      note.textContent = 'Explain the quality issue for the Vendor Manager to review.';
+      btnText.textContent = '👮 Report to Vendor';
+      forwardBox.style.display = 'block';
+      clearBox.style.display = 'none';
+    } else {
+      title.textContent = 'Clear & Resolve Complaint';
+      note.textContent = 'Explain the resolution. Your note for the student will be visible on their dashboard.';
+      btnText.textContent = '✅ Clear & Resolve';
+      forwardBox.style.display = 'none';
+      clearBox.style.display = 'block';
+    }
+
+    modal.style.display = 'flex';
+  }
+
+  document.getElementById('ao-review-confirm').addEventListener('click', async () => {
+    const err = document.getElementById('ao-review-err');
+    let vendorNote = '';
+    let studentNote = '';
+
+    if (activeReviewType === 'forward') {
+      vendorNote = document.getElementById('ao-review-desc-vendor').value.trim();
+      if (!vendorNote) { err.style.display = 'block'; return; }
+    } else {
+      vendorNote = document.getElementById('ao-clear-desc-vendor').value.trim();
+      studentNote = document.getElementById('ao-clear-desc-student').value.trim();
+      if (!vendorNote || !studentNote) { err.style.display = 'block'; return; }
+    }
+
+    err.style.display = 'none';
+    const btn = document.getElementById('ao-review-confirm');
+    const spinner = document.getElementById('ao-review-spinner');
+    const btnText = document.getElementById('ao-review-confirm-text');
+
+    btn.disabled = true;
+    spinner.style.display = 'inline-block';
+    btnText.textContent = 'Processing...';
+
+    if (activeReviewType === 'forward') {
+      await escalateToVendor(activeReviewComplaint, vendorNote);
+    } else {
+      await clearComplaint(activeReviewComplaint, vendorNote, studentNote);
+    }
+
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    document.getElementById('ao-review-modal').style.display = 'none';
+  });
+
+  async function escalateToVendor(c, note) {
     await updateComplaint(c.ticketId, {
       status: 'escalated_to_vendor',
       timeline: [...(c.timeline || []), {
         event: 'AO Reported to Vendor: Major quality dispute.',
+        note: note,
         time: new Date().toISOString(), by: session.uid
       }]
     });
@@ -272,9 +374,7 @@
     render();
   }
 
-  async function clearComplaint(c) {
-    if (!confirm('Clear this complaint? Both photos will be deleted from the server.')) return;
-
+  async function clearComplaint(c, vendorNote, studentNote) {
     // 1. Delete photos
     if (c.photo) await deletePhotoFromSupabase(c.photo);
     const resPhoto = c.resolutionPhoto || c.supervisorPhoto;
@@ -286,10 +386,13 @@
       photo: null,
       supervisorPhoto: null,
       timeline: [...(c.timeline || []), {
-        event: 'AO Cleared Review: Photos deleted from server.',
+        event: 'AO Cleared Review: Issue resolved and photos deleted.',
+        vendorNote: vendorNote,
+        note: studentNote, // 'note' is what student dashboard looks for
         time: new Date().toISOString(), by: session.uid
       }]
     });
+    alert('Complaint successfully cleared and student notified.');
     render();
   }
 

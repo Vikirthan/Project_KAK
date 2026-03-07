@@ -108,7 +108,7 @@
                         <div class="stat-card-icon">📋</div>
                         <div class="stat-card-info">
                             <span class="stat-card-num" id="stat-total">0</span>
-                            <span class="stat-card-label">Total Registered</span>
+                            <span class="stat-card-label">My Complaints</span>
                         </div>
                     </div>
                     <div class="stat-card card-resolved">
@@ -131,6 +131,31 @@
                             <span class="stat-card-num" id="stat-pending">0</span>
                             <span class="stat-card-label">In Progress</span>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Global System Impact (For all students) -->
+                <div class="global-stats-row"
+                    style="display: flex; gap: 15px; margin-bottom: 25px; padding: 15px; background: rgba(124, 58, 237, 0.05); border: 1px solid rgba(124, 58, 237, 0.15); border-radius: 12px; align-items: center;">
+                    <div class="gs-icon" style="font-size: 24px;">📊</div>
+                    <div style="flex: 1;">
+                        <h4
+                            style="margin: 0; color: #a78bfa; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            Global System Impact</h4>
+                        <p style="margin: 3px 0 0; color: #94a3b8; font-size: 12px;">Real-time stats across all blocks
+                            and students.</p>
+                    </div>
+                    <div class="gs-item"
+                        style="text-align: center; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px;">
+                        <span id="global-total"
+                            style="display: block; font-size: 20px; font-weight: 800; color: #fff;">0</span>
+                        <span style="font-size: 10px; color: #94a3b8; text-transform: uppercase;">Total Received</span>
+                    </div>
+                    <div class="gs-item"
+                        style="text-align: center; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px;">
+                        <span id="global-resolved"
+                            style="display: block; font-size: 20px; font-weight: 800; color: #10b981;">0</span>
+                        <span style="font-size: 10px; color: #94a3b8; text-transform: uppercase;">Total Solved</span>
                     </div>
                 </div>
 
@@ -414,6 +439,8 @@
                 <button class="star-btn" data-star="4">☆</button>
                 <button class="star-btn" data-star="5">☆</button>
             </div>
+            <textarea id="rating-comment" placeholder="Any additional feedback? (Optional)" rows="3"
+                style="width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; font-family: inherit; margin-top: 15px; resize: none;"></textarea>
             <p class="rating-err" id="rating-err" style="display:none">Please select a star rating.</p>
             <div class="rating-modal-actions">
                 <button class="btn-rating-cancel" id="rating-cancel">Cancel</button>
