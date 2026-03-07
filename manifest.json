@@ -2,9 +2,10 @@
   "name": "KAK Hygiene Management",
   "short_name": "KAK",
   "description": "Manage hygiene complaints at Lovely Professional University.",
-  "start_url": "./index.html",
+  "start_url": "index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#0f0f1a",
+  "background_color": "#0a0a14",
   "theme_color": "#6366f1",
   "icons": [
     {
