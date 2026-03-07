@@ -155,7 +155,14 @@ function formatDateTime(date) {
 const KAK = {
   save(key, value) { localStorage.setItem('kak_' + key, JSON.stringify(value)); },
   get(key) { try { return JSON.parse(localStorage.getItem('kak_' + key)); } catch { return null; } },
-  remove(key) { localStorage.removeItem('kak_' + key); }
+  remove(key) { localStorage.removeItem('kak_' + key); },
+  // Helper to check if a list of complaints has actually changed (to prevent flickering)
+  generateListHash(list) {
+    return (list || []).map(c => `${c.ticketId}-${c.status}-${c.studentRating}-${c.resolvedAt}-${c.autoAccepted}`).join('|');
+  },
+  hasListChanged(oldHash, newList) {
+    return oldHash !== this.generateListHash(newList);
+  }
 };
 
 // =============================================

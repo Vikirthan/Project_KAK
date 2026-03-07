@@ -181,6 +181,8 @@
     /* =========================================================
        4. DASHBOARD — Stats & Complaint List
     ========================================================= */
+    let lastDashHash = '';
+
     async function getMyComplaints() {
         const all = await getComplaints();
         return all.filter(c => c.studentUID === session.uid);
@@ -188,6 +190,11 @@
 
     async function renderDashboard() {
         const allStats = await getComplaints();
+
+        // ── Pre-render check to avoid flickering ──
+        if (!KAK.hasListChanged(lastDashHash, allStats)) return;
+        lastDashHash = KAK.generateListHash(allStats);
+
         const mine = allStats.filter(c => c.studentUID === session.uid);
 
         // ── Global System Stats (For transparency) ──
@@ -828,8 +835,8 @@
         }
     }
 
-    /* ── Initial render + Auto-refresh (3s) ── */
+    /* ── Initial render + Auto-refresh (10s for mobile optimization) ── */
     renderDashboard();
-    setInterval(renderDashboard, 3000);
+    setInterval(renderDashboard, 10000);
 
 })();

@@ -29,12 +29,18 @@
 
   /* ── Timer intervals store ── */
   const timerMap = {}; // ticketId → intervalId
+  let lastRenderHash = '';
 
   /* ─────────────────────────────────────────────
      RENDER ALL SECTIONS
   ───────────────────────────────────────────── */
   async function render() {
     const all = await getComplaintsForSupervisor(session.uid);
+
+    // ── Pre-render check to avoid flickering ──
+    if (!KAK.hasListChanged(lastRenderHash, all)) return;
+    lastRenderHash = KAK.generateListHash(all);
+
     const stat = await getSupStat(session.uid);
 
     const unaccepted = all.filter(c => c.status === 'pending_acceptance');
@@ -459,9 +465,9 @@
 
 
   /* ─────────────────────────────────────────────
-     INITIAL RENDER + AUTO-REFRESH EVERY 5s
+     INITIAL RENDER + AUTO-REFRESH EVERY 10s
   ───────────────────────────────────────────── */
   render();
-  setInterval(async () => { await runEscalationEngine(); await render(); }, 2000);
+  setInterval(async () => { await runEscalationEngine(); await render(); }, 10000);
 
 })();

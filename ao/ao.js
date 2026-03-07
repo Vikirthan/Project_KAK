@@ -21,12 +21,17 @@
 
   /* ── Timer store ── */
   const timerMap = {};
+  let lastRenderHash = '';
 
   /* =========================================================
      RENDER
   ========================================================= */
   async function render() {
     let all = await getComplaints();
+
+    // ── Check if anything actually changed to prevent flickering ──
+    if (!KAK.hasListChanged(lastRenderHash, all)) return;
+    lastRenderHash = KAK.generateListHash(all);
 
     // ── Filter by AO's assigned block ──
     if (session.block) {
@@ -524,8 +529,8 @@
     await render();
   });
 
-  /* ── Initial render + Refresh (3s) ── */
+  /* ── Initial render + Refresh (10s) ── */
   render();
-  setInterval(async () => { await runEscalationEngine(); await render(); }, 3000);
+  setInterval(async () => { await runEscalationEngine(); await render(); }, 10000);
 
 })();
