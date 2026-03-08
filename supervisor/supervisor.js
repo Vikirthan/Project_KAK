@@ -97,8 +97,27 @@
   /* ─────────────────────────────────────────────
      RENDER ALL SECTIONS
   ───────────────────────────────────────────── */
+  function renderList(listId, emptyId, data, renderFn) {
+    const list = document.getElementById(listId);
+    const empty = document.getElementById(emptyId);
+    if (!list || !empty) return;
+
+    // Clear everything but the empty state
+    const items = list.querySelectorAll('.sup-card');
+    items.forEach(i => i.remove());
+
+    if (data.length === 0) {
+      empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      data.forEach(c => list.appendChild(renderFn(c)));
+    }
+  }
+
   async function render() {
+    console.log("[KAK-DEBUG] Current Session UID:", session.uid);
     const all = await getComplaintsForSupervisor(session.uid);
+    console.log("[KAK-DEBUG] Fetched complaints:", all);
 
     // Track new/unaccepted complaints for repeated notification
     const now = Date.now();
@@ -181,6 +200,7 @@
     renderList('approval-list', 'empty-approval', approval, renderApprovalCard);
     renderList('ao-list', 'empty-ao', aoAlerts, renderAOCard);
     renderList('resolved-list', 'empty-resolved', resolved, renderResolvedCard);
+    console.log("[KAK-DEBUG] Render Tick Finish.");
   }
 
   /* ─────────────────────────────────────────────

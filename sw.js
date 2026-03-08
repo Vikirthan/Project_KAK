@@ -41,29 +41,34 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// Fetch Event: Stale-While-Revalidate Strategy
+// Fetch Event: Mixed Strategy
 self.addEventListener('fetch', (event) => {
-    // Only handle GET requests
-    if (event.request.method !== 'GET') return;
+    const url = new URL(event.request.url);
 
-    event.respondWith(
-        caches.match(event.request).then((cachedResponse) => {
-            const fetchedResponse = fetch(event.request).then((networkResponse) => {
-                // Only cache valid responses
-                if (networkResponse && networkResponse.status === 200) {
-                    const responseToCache = networkResponse.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, responseToCache);
-                    });
-                }
-                return networkResponse;
-            }).catch(() => {
-                // On network failure, the cachedResponse (if any) will be returned
-            });
+    // 1. API Calls (Supabase) — Network ONLY
+    if (url.hostname.includes('supabase.co')) {
+        event.respondWith(fetch(event.request));
+        return;
+    }
 
-            return cachedResponse || fetchedResponse;
-        })
-    );
+    // 2. Static Assets — Stale-While-Revalidate
+    if (event.request.method === 'GET') {
+        event.respondWith(
+            caches.match(event.request).then((cachedResponse) => {
+                const fetchedResponse = fetch(event.request).then((networkResponse) => {
+                    if (networkResponse && networkResponse.status === 200) {
+                        const responseToCache = networkResponse.clone();
+                        caches.open(CACHE_NAME).then((cache) => {
+                            cache.put(event.request, responseToCache);
+                        });
+                    }
+                    return networkResponse;
+                }).catch(() => cachedResponse);
+
+                return cachedResponse || fetchedResponse;
+            })
+        );
+    }
 });
 
 // Notification Click Handler: Deep Linking
