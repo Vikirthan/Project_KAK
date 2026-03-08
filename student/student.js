@@ -14,6 +14,9 @@
         return;
     }
 
+    // Request Notification permission
+    if (Notification.permission !== 'granted') Notification.requestPermission();
+
     /* =========================================================
        2. POPULATE NAVBAR
     ========================================================= */
@@ -27,9 +30,21 @@
     document.getElementById('greeting-time').textContent = greet;
     document.getElementById('greeting-name').textContent = session.name.split(' ')[0];
 
+    // Notification State
+    const notifiedIds = new Set();
+    function triggerNotification(title, body, ticketId) {
+        if (Notification.permission === 'granted' && !notifiedIds.has(ticketId)) {
+            new Notification(title, {
+                body: body,
+                icon: '../icon-192.png'
+            });
+            notifiedIds.add(ticketId);
+        }
+    }
+
     // Logout
     document.getElementById('btn-logout').addEventListener('click', () => {
-        if (confirm('Are you sure you want to logout?')) kakLogout('student');
+        if (confirm('Are you sure you want to logout?')) kakLogout(session.uid);
     });
 
     /* =========================================================
@@ -190,12 +205,18 @@
 
     async function renderDashboard() {
         const allStats = await getComplaints();
+        const mine = allStats.filter(c => c.studentUID === session.uid);
+
+        // Notify if any of MY complaints just got resolved
+        mine.forEach(c => {
+            if (c.status === 'pending_approval' && !notifiedIds.has(c.ticketId)) {
+                triggerNotification("✅ Complaint Resolved", `Your ${c.issueType} has been handled. Please rate the service now.`, c.ticketId);
+            }
+        });
 
         // ── Pre-render check to avoid flickering ──
         if (!KAK.hasListChanged(lastDashHash, allStats)) return;
         lastDashHash = KAK.generateListHash(allStats);
-
-        const mine = allStats.filter(c => c.studentUID === session.uid);
 
         // ── Global System Stats (For transparency) ──
         const gTotal = allStats.length;

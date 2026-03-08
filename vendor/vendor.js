@@ -15,9 +15,25 @@
     /* ── Run escalation engine on load ── */
     runEscalationEngine();
 
+    // Request Notification permission
+    if (Notification.permission !== 'granted') Notification.requestPermission();
+
     /* ── Populate navbar ── */
     document.getElementById('nav-name').textContent = session.name;
     document.getElementById('btn-logout').addEventListener('click', () => kakLogout(session.uid));
+
+    /* ── State ── */
+    const notifiedIds = new Set();
+
+    function triggerNotification(title, body, ticketId) {
+        if (Notification.permission === 'granted' && !notifiedIds.has(ticketId)) {
+            new Notification(title, {
+                body: body,
+                icon: '../icon-192.png'
+            });
+            notifiedIds.add(ticketId);
+        }
+    }
 
     /* =========================================================
        CORE LOGIC
@@ -25,6 +41,25 @@
     async function render() {
         const ranking = await getSupervisorRanking();
         const complaints = await getComplaints();
+
+        // Check for new disputes
+        const disputes = complaints.filter(c => c.status === 'escalated_to_vendor');
+        disputes.forEach(c => {
+            if (!notifiedIds.has(c.ticketId)) {
+                triggerNotification("⚖️ New Dispute Received", `New escalation for final decision: Ticket ${c.ticketId}.`, c.ticketId);
+            }
+        });
+
+        // Check for critical supervisor violations
+        ranking.forEach(sup => {
+            if (sup.blackPoints >= 4) {
+                const alertId = `sup_alert_${sup.uid}_${sup.blackPoints}`;
+                if (!notifiedIds.has(alertId)) {
+                    triggerNotification("🛑 Staff Performance Alert", `Supervisor ${sup.name} (${sup.uid}) reached critical black points (${sup.blackPoints}).`, alertId);
+                }
+            }
+        });
+
         const stats = calculateGlobalStats(ranking, complaints);
 
         renderStats(stats);

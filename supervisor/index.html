@@ -63,12 +63,20 @@
     <!-- MAIN -->
     <div class="sup-main" id="sup-main">
 
+        <!-- SIREN AUDIO -->
+        <audio id="siren-audio" src="../assets/alarm.mp3" loop preload="auto"></audio>
+
         <!-- HEADER -->
         <div class="sup-header">
             <div>
                 <h1 class="sup-title" id="sup-title">Block – Dashboard</h1>
-                <p class="sup-subtitle">Complaints assigned to your block — resolve within 30 minutes to avoid
-                    escalation.</p>
+                <div class="siren-control-wrap">
+                    <p class="sup-subtitle">Complaints assigned to your block — resolve within 30 minutes to avoid
+                        escalation.</p>
+                    <button id="btn-toggle-siren" class="btn-siren-off" title="Enable Siren Alarm">
+                        <span id="siren-icon">🔇</span> <span id="siren-text">Siren Off</span>
+                    </button>
+                </div>
             </div>
             <div class="sup-live-badge">
                 <span class="live-dot"></span> Live

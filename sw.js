@@ -65,3 +65,36 @@ self.addEventListener('fetch', (event) => {
         })
     );
 });
+
+// Notification Click Handler: Deep Linking
+self.addEventListener('notificationclick', (event) => {
+    const notification = event.notification;
+    const ticketId = (notification.data && notification.data.ticketId) ? notification.data.ticketId : null;
+    const role = (notification.data && notification.data.role) ? notification.data.role : 'supervisor';
+
+    event.notification.close();
+
+    // Focus existing window or open new one
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+            // Determine the URL to open
+            let targetUrl = role === 'supervisor' ? 'supervisor/index.html' : 'index.html';
+            if (ticketId) targetUrl += `?ticketId=${ticketId}`;
+
+            // Try to find an open window belonging to the appropriate portal
+            for (let client of windowClients) {
+                if (client.url.includes(role) && 'focus' in client) {
+                    return client.focus().then(c => {
+                        if (ticketId) return c.navigate(targetUrl);
+                        return c;
+                    });
+                }
+            }
+
+            // If no window found, open a new one
+            if (clients.openWindow) {
+                return clients.openWindow(targetUrl);
+            }
+        })
+    );
+});

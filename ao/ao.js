@@ -15,19 +15,42 @@
   /* ── Run escalation engine on load ── */
   runEscalationEngine();
 
+  // Request Notification permission
+  if (Notification.permission !== 'granted') Notification.requestPermission();
+
   /* ── Navbar ── */
   document.getElementById('nav-name').textContent = session.name;
   document.getElementById('btn-logout').addEventListener('click', () => kakLogout(session.uid));
 
-  /* ── Timer store ── */
+  /* ── State ── */
   const timerMap = {};
   let lastRenderHash = '';
+  const notifiedIds = new Set();
+
+  function triggerNotification(title, body, ticketId) {
+    if (Notification.permission === 'granted' && !notifiedIds.has(ticketId)) {
+      new Notification(title, {
+        body: body,
+        icon: '../icon-192.png'
+      });
+      notifiedIds.add(ticketId);
+    }
+  }
 
   /* =========================================================
      RENDER
   ========================================================= */
   async function render() {
     let all = await getComplaints();
+
+    // ── Check if any NEW escalations need notification ──
+    const relevantToAo = all.filter(c => c.status === 'pending_ao' || c.status === 'reported_to_ao' || c.status === 'pending_ao_review');
+    relevantToAo.forEach(c => {
+      if (!notifiedIds.has(c.ticketId)) {
+        const title = c.status === 'reported_to_ao' ? "🚨 Supervisor Reported" : "🏢 New Escalation (Tier 1)";
+        triggerNotification(title, `Ticket ${c.ticketId} (${c.issueType}) requires immediate AO attention.`, c.ticketId);
+      }
+    });
 
     // ── Check if anything actually changed to prevent flickering ──
     if (!KAK.hasListChanged(lastRenderHash, all)) return;

@@ -1140,3 +1140,29 @@ textarea {
 .m-nav-icon {
   font-size: 20px;
 }
+
+/* ---- TICKET HIGHLIGHT (Notification interaction) ---- */
+.highlight-ticket {
+  animation: ticketPulse 2s ease-in-out infinite;
+  border: 2px solid var(--danger) !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4) !important;
+  z-index: 10;
+  position: relative;
+}
+
+@keyframes ticketPulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.02);
+    opacity: 0.9;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

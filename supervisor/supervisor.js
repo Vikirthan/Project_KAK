@@ -27,15 +27,95 @@
   document.getElementById('sup-title').textContent = 'Block ' + (session.block || '–') + ' Dashboard';
   document.getElementById('btn-logout').addEventListener('click', () => kakLogout(session.uid));
 
-  /* ── Timer intervals store ── */
+  /* ── Timer & Siren State ── */
   const timerMap = {}; // ticketId → intervalId
   let lastRenderHash = '';
+  const notifiedIds = new Set();
+
+  let sirenEnabled = false;
+  let isAlarmPlaying = false;
+  const sirenAudio = document.getElementById('siren-audio');
+  const btnSiren = document.getElementById('btn-toggle-siren');
+  const sirenIcon = document.getElementById('siren-icon');
+  const sirenText = document.getElementById('siren-text');
+
+  function playAlarm() {
+    if (sirenEnabled && !isAlarmPlaying && sirenAudio) {
+      sirenAudio.play().catch(e => console.warn("Autoplay blocked or audio error:", e));
+      isAlarmPlaying = true;
+    }
+  }
+
+  function stopAlarm() {
+    if (sirenAudio) {
+      sirenAudio.pause();
+      sirenAudio.currentTime = 0;
+      isAlarmPlaying = false;
+    }
+  }
+
+  // Handle Siren Toggle
+  btnSiren.addEventListener('click', () => {
+    sirenEnabled = !sirenEnabled;
+    if (sirenEnabled) {
+      btnSiren.className = 'btn-siren-on';
+      sirenIcon.textContent = '🔊';
+      sirenText.textContent = 'Siren On';
+      // Play a short burst to "unlock" audio for browser
+      sirenAudio.volume = 0.1;
+      sirenAudio.play().then(() => {
+        setTimeout(() => {
+          if (!isAlarmPlaying) { sirenAudio.pause(); sirenAudio.currentTime = 0; }
+          sirenAudio.volume = 1.0;
+        }, 300);
+      });
+    } else {
+      btnSiren.className = 'btn-siren-off';
+      sirenIcon.textContent = '🔇';
+      sirenText.textContent = 'Siren Off';
+      stopAlarm();
+    }
+  });
+
+  function triggerNotification(title, body, ticketId) {
+    if (Notification.permission === 'granted') {
+      new Notification(title, {
+        body: body,
+        icon: '../icon-192.png',
+        tag: ticketId,
+        data: { ticketId: ticketId, role: 'supervisor' }
+      });
+      notifiedIds.add(ticketId);
+      playAlarm(); // Trigger siren with the notification
+    }
+  }
 
   /* ─────────────────────────────────────────────
      RENDER ALL SECTIONS
   ───────────────────────────────────────────── */
   async function render() {
     const all = await getComplaintsForSupervisor(session.uid);
+
+    // Track new/unaccepted complaints for repeated notification
+    const now = Date.now();
+    const currentUnaccepted = all.filter(c => c.status === 'pending_acceptance');
+
+    currentUnaccepted.forEach(c => {
+      const submittedTime = new Date(c.submittedAt).getTime();
+      const minsSince = Math.floor((now - submittedTime) / 60000);
+
+      const isNew = !notifiedIds.has(c.ticketId);
+      const isInterval = (minsSince > 0 && minsSince <= 10 && minsSince % 2 === 0);
+      const storageKey = `lastNotified_${c.ticketId}_${minsSince}`;
+
+      if (isNew || (isInterval && !window[storageKey])) {
+        const title = isNew ? "🆕 New Complaint Assigned" : "🚨 URGENT: Complaint Awaiting Acceptance";
+        const body = `${c.issueType} at Block ${c.block}. Please accept immediately!`;
+        triggerNotification(title, body, c.ticketId);
+
+        if (isInterval) window[storageKey] = true;
+      }
+    });
 
     // ── Pre-render check to avoid flickering ──
     if (!KAK.hasListChanged(lastRenderHash, all)) return;
@@ -137,6 +217,7 @@
   }
 
   async function acceptComplaint(c) {
+    stopAlarm();
     const now = new Date();
     const patch = {
       status: 'pending_supervisor',
@@ -465,9 +546,31 @@
 
 
   /* ─────────────────────────────────────────────
+     DEEP LINKING (Scroll to ticket from notification)
+  ───────────────────────────────────────────── */
+  function checkDeepLinks() {
+    const params = new URLSearchParams(window.location.search);
+    const ticketId = params.get('ticketId');
+    if (!ticketId) return;
+
+    // Small delay to ensure the DOM is fully rendered
+    setTimeout(() => {
+      const card = document.getElementById('card-' + ticketId);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('highlight-ticket');
+        // Clear param after handling
+        window.history.replaceState(null, '', window.location.pathname + '?uid=' + session.uid);
+      }
+    }, 500);
+  }
+
+  /* ─────────────────────────────────────────────
      INITIAL RENDER + AUTO-REFRESH EVERY 10s
   ───────────────────────────────────────────── */
-  render();
+  render().then(() => {
+    checkDeepLinks(); // Check on first load
+  });
   setInterval(async () => { await runEscalationEngine(); await render(); }, 10000);
 
 })();

@@ -16,7 +16,32 @@
     <link rel="apple-touch-icon" href="icon-192.png" />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/login.css" />
+    <script src="js/app.js"></script>
     <script>
+        // Check for existing session before page renders to prevent flickering
+        (function () {
+            const lastUID = localStorage.getItem('kak_last_uid');
+            if (lastUID) {
+                const sessionStr = localStorage.getItem('kak_session_' + JSON.parse(lastUID));
+                if (sessionStr) {
+                    try {
+                        const session = JSON.parse(sessionStr);
+                        const routes = {
+                            student: 'student/index.html',
+                            supervisor: 'supervisor/index.html',
+                            ao: 'ao/index.html',
+                            vendor: 'vendor/index.html',
+                            admin: 'master/index.html'
+                        };
+                        const dest = routes[session.role];
+                        if (dest) {
+                            window.location.replace(dest + '?uid=' + session.uid);
+                        }
+                    } catch (e) { console.error("Session restored failed", e); }
+                }
+            }
+        })();
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')

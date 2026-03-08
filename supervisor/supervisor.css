@@ -934,3 +934,57 @@
     align-items: center;
     text-align: center;
 }
+
+/* ---- SIREN TOGGLE BUTTON ---- */
+.siren-control-wrap {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 5px;
+}
+
+#btn-toggle-siren {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 40px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition);
+    border: 1px solid transparent;
+}
+
+.btn-siren-off {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-muted);
+}
+
+.btn-siren-on {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4) !important;
+    color: #fca5a5;
+    animation: siren-glow 2s infinite;
+}
+
+@keyframes siren-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 5px rgba(239, 68, 68, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+    }
+}
+
+@media (max-width: 480px) {
+    .siren-control-wrap {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
