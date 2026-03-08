@@ -36,12 +36,19 @@
   let lastRenderHash = '';
   const notifiedIds = new Set();
 
-  let sirenEnabled = false;
+  let sirenEnabled = true; // Enabled by default
   let isAlarmPlaying = false;
   const sirenAudio = document.getElementById('siren-audio');
   const btnSiren = document.getElementById('btn-toggle-siren');
   const sirenIcon = document.getElementById('siren-icon');
   const sirenText = document.getElementById('siren-text');
+
+  // Initialize UI to "On" state
+  if (btnSiren) {
+    btnSiren.className = 'btn-siren-on';
+    if (sirenIcon) sirenIcon.textContent = '🔊';
+    if (sirenText) sirenText.textContent = 'Siren On';
+  }
 
   function playAlarm() {
     if (sirenEnabled && !isAlarmPlaying && sirenAudio) {

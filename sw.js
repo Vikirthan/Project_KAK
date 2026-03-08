@@ -1,9 +1,9 @@
 /* =========================================
-   KAK HYGIENE SYSTEM – SERVICE WORKER (V2)
+   KAK HYGIENE SYSTEM – SERVICE WORKER (V3)
    Optimized for Subdirectory/GitHub Pages
    ========================================= */
 
-const CACHE_NAME = 'kak-cache-v2';
+const CACHE_NAME = 'kak-cache-v3';
 const ASSETS_TO_CACHE = [
     'index.html',
     'css/style.css',

@@ -225,6 +225,7 @@ async function getComplaints() {
     return KAK.get('complaints') || [];
   }
 
+  console.log(`[KAK-LIVE] Fetched ${data.length} raw rows from Supabase.`);
   // Map DB columns back to JS keys
   return data.map(row => ({
     ticketId: row.ticket_id,
@@ -276,11 +277,11 @@ async function addComplaint(c) {
     if (c[jsKey] !== undefined) row[dbKey] = c[jsKey];
   }
 
-  console.log('[KAK-DATA] Attempting Insert into MATRIX:', row);
+  console.log('[KAK-DATA] Attempting Insert into Supabase:', row);
   const { error } = await dc.from('complaints').insert([row]);
 
   if (error) {
-    console.error('[KAK-DATA] Error adding complaint:', error);
+    console.error('[KAK-DATA] Error adding complaint to Supabase:', error);
     throw error; // Rethrow to show alert in UI
   } else {
     try {
@@ -384,7 +385,9 @@ async function deletePhotoFromSupabase(publicURL) {
 /** Get all complaints assigned to a supervisor UID */
 async function getComplaintsForSupervisor(supUID) {
   const all = await getComplaints();
-  return all.filter(c => c.assignedSupervisor === supUID);
+  const filtered = all.filter(c => c.assignedSupervisor === supUID);
+  console.log(`[KAK-DEBUG] Filtering for Supervisor: ${supUID} | Found: ${filtered.length} total: ${all.length}`);
+  return filtered;
 }
 
 /** Get all escalated (pending_ao) complaints */
