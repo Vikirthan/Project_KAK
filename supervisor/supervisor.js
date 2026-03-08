@@ -14,18 +14,22 @@
   }
 
   /* ── Run escalation engine on load ── */
-  runEscalationEngine();
+  try { runEscalationEngine(); } catch (e) { console.warn("Escalation engine failed on boot:", e); }
 
   // Request notification permission (simulated push)
   if (Notification.permission !== 'granted') {
     Notification.requestPermission();
   }
 
-  document.getElementById('nav-name').textContent = session.name;
-  document.getElementById('nav-uid').textContent = 'UID: ' + session.uid;
-  document.getElementById('nav-block-badge').textContent = 'Block ' + (session.block || '–');
-  document.getElementById('sup-title').textContent = 'Block ' + (session.block || '–') + ' Dashboard';
-  document.getElementById('btn-logout').addEventListener('click', () => kakLogout(session.uid));
+  try {
+    document.getElementById('nav-name').textContent = session.name;
+    document.getElementById('nav-uid').textContent = 'UID: ' + session.uid;
+    const blockBadge = document.getElementById('nav-block-badge');
+    if (blockBadge) blockBadge.textContent = 'Block ' + (session.block || '–');
+    const supTitle = document.getElementById('sup-title');
+    if (supTitle) supTitle.textContent = 'Block ' + (session.block || '–') + ' Dashboard';
+    document.getElementById('btn-logout').addEventListener('click', () => kakLogout(session.uid));
+  } catch (e) { console.error("Header init error:", e); }
 
   /* ── Timer & Siren State ── */
   const timerMap = {}; // ticketId → intervalId
@@ -229,6 +233,7 @@
       }]
     };
     await updateComplaint(c.ticketId, patch);
+    render(); // Update UI immediately
     render();
   }
 
@@ -568,9 +573,22 @@
   /* ─────────────────────────────────────────────
      INITIAL RENDER + AUTO-REFRESH EVERY 10s
   ───────────────────────────────────────────── */
-  render().then(() => {
-    checkDeepLinks(); // Check on first load
+  /* ─────────────────────────────────────────────
+     INITIAL RENDER + AUTO-REFRESH EVERY 5s
+  ───────────────────────────────────────────── */
+  async function refreshApp() {
+    try {
+      console.log(`[KAK-LIVE] Tick: ${new Date().toLocaleTimeString()}`);
+      await runEscalationEngine();
+      await render();
+    } catch (err) {
+      console.error("[KAK-LIVE-ERR] Loop failure:", err);
+    }
+  }
+
+  refreshApp().then(() => {
+    checkDeepLinks();
   });
-  setInterval(async () => { await runEscalationEngine(); await render(); }, 10000);
+  setInterval(refreshApp, 5000);
 
 })();
