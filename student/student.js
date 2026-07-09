@@ -14,8 +14,8 @@
         return;
     }
 
-    // Request Notification permission
-    if (Notification.permission !== 'granted') Notification.requestPermission();
+    // Request Notification permission safely
+    if (window.Notification && Notification.permission !== 'granted') Notification.requestPermission();
 
     /* =========================================================
        2. POPULATE NAVBAR
@@ -33,11 +33,24 @@
     // Notification State
     const notifiedIds = new Set();
     function triggerNotification(title, body, ticketId) {
+        if (!window.Notification) return;
         if (Notification.permission === 'granted' && !notifiedIds.has(ticketId)) {
-            new Notification(title, {
+            const options = {
                 body: body,
                 icon: '../icon-192.png'
-            });
+            };
+
+            // Try service worker notification first (for mobile support)
+            if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+                navigator.serviceWorker.ready.then(reg => {
+                    reg.showNotification(title, options);
+                }).catch(err => {
+                    new Notification(title, options);
+                });
+            } else {
+                new Notification(title, options);
+            }
+
             notifiedIds.add(ticketId);
         }
     }

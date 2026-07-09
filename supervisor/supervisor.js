@@ -16,8 +16,8 @@
   /* ── Run escalation engine on load ── */
   try { runEscalationEngine(); } catch (e) { console.warn("Escalation engine failed on boot:", e); }
 
-  // Request notification permission (simulated push)
-  if (Notification.permission !== 'granted') {
+  // Request notification permission (simulated push) safely
+  if (window.Notification && Notification.permission !== 'granted') {
     Notification.requestPermission();
   }
 
@@ -89,14 +89,27 @@
   });
 
   function triggerNotification(title, body, ticketId) {
+    if (!window.Notification) return;
     if (Notification.permission === 'granted') {
-      new Notification(title, {
+      const options = {
         body: body,
         icon: '../icon-192.png',
         tag: ticketId,
         data: { ticketId: ticketId, role: 'supervisor' }
-      });
-      notifiedIds.add(ticketId);
+      };
+
+      // Try service worker notification first (for mobile support)
+      if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+        navigator.serviceWorker.ready.then(reg => {
+          reg.showNotification(title, options);
+        }).catch(err => {
+          new Notification(title, options);
+        });
+      } else {
+        new Notification(title, options);
+      }
+
+      if (ticketId) notifiedIds.add(ticketId);
       playAlarm(); // Trigger siren with the notification
     }
   }
@@ -179,12 +192,9 @@
       if (hasAutoAccepted) {
         aaAlert.classList.add('blink-alert');
 
-        // Trigger simulated push notification
-        if (Notification.permission === 'granted' && !window.lastNotifiedAA) {
-          new Notification("🚨 AUTO-ACCEPTED TASK", {
-            body: "You missed the 10-minute acceptance window. This task has been auto-accepted and the resolution timer has started. Resolve it NOW!",
-            icon: "../assets/logo.png"
-          });
+        // Trigger simulated push notification safely
+        if (window.Notification && Notification.permission === 'granted' && !window.lastNotifiedAA) {
+          triggerNotification("🚨 AUTO-ACCEPTED TASK", "You missed the 10-minute acceptance window. This task has been auto-accepted and the resolution timer has started. Resolve it NOW!", 'auto_accepted');
           window.lastNotifiedAA = true; // Simple throttle
         }
       }
