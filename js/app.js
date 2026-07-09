@@ -11,6 +11,7 @@ const KAK_USERS = {
   '123': { password: 'Viki', role: 'student', name: 'Vikirthan T', uid: '123', redirectTo: 'student/index.html' },
   '456': { password: 'Viki', role: 'student', name: 'Arun Kumar S', uid: '456', redirectTo: 'student/index.html' },
   '789': { password: 'Viki', role: 'student', name: 'Priya Sharma', uid: '789', redirectTo: 'student/index.html' },
+  'Stud': { password: 'Viki', role: 'student', name: 'Student – Stud', uid: 'Stud', redirectTo: 'student/index.html' },
 
   // ---------- SUPERVISORS ----------
   'sup': { password: 'Viki', role: 'supervisor', name: 'Supervisor – Block 36', block: '36', uid: 'SUP-36', redirectTo: 'supervisor/index.html' },
@@ -36,6 +37,7 @@ const STUDENT_PROFILES = {
   '123': { name: 'Vikirthan T', regNo: '12301234', phone: '9876543210' },
   '456': { name: 'Arun Kumar S', regNo: '45601234', phone: '9865432101' },
   '789': { name: 'Priya Sharma', regNo: '78901234', phone: '9754321089' },
+  'Stud': { name: 'Student – Stud', regNo: 'Stud001', phone: '9999999999' },
 };
 
 // Role label & icon map
