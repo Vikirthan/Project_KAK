@@ -3,7 +3,7 @@
    Optimized for Subdirectory/GitHub Pages
    ========================================= */
 
-const CACHE_NAME = 'kak-cache-v3';
+const CACHE_NAME = 'kak-cache-v4';
 const ASSETS_TO_CACHE = [
     'index.html',
     'css/style.css',
